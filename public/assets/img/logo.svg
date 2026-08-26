@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-label="Islamic Center">
+  <rect width="80" height="80" fill="none"/>
+  <g fill="none" stroke="#c9a227" stroke-width="2.2" stroke-linejoin="round">
+    <path d="M18 62 V36 L40 16 L62 36 V62"/>
+    <path d="M12 62 H68"/>
+    <path d="M34 62 V46 H46 V62"/>
+  </g>
+  <circle cx="40" cy="30" r="4" fill="#c9a227"/>
+  <path d="M28 40 h24 M28 48 h24" fill="none" stroke="#c9a227" stroke-width="1.6"/>
+</svg>

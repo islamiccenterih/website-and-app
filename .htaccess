@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Block direct access to application directories if the whole project
+# is placed inside public_html.
+RewriteRule ^(app|config|database|storage|deploy)(/|$) - [F,L]
+
+# Map the public/ folder as the web root.
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ public/$1 [L]

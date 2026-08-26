@@ -1,0 +1,14 @@
+{
+    "ok": true,
+    "error": null,
+    "stale": false,
+    "for_date": "2026-08-26",
+    "fetched_at": "2026-08-25T20:09:24+00:00",
+    "source": "gold-api.com + frankfurter.app",
+    "gold_usd_oz": 4665.1001,
+    "silver_usd_oz": 68.986,
+    "usd_inr": 95.42,
+    "gold_per_gram_inr": 14311.7072,
+    "silver_per_gram_inr": 211.6369,
+    "purity": "24k \/ 999 silver spot (value of the metal, not jewellery making charges)"
+}

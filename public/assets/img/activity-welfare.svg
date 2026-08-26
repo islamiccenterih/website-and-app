@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0e2a22"/>
+      <stop offset="1" stop-color="#1e4a3b"/>
+    </linearGradient>
+    <pattern id="p" width="56" height="56" patternUnits="userSpaceOnUse">
+      <path d="M28 4 L52 28 L28 52 L4 28 Z" fill="none" stroke="#c9a227" stroke-width="0.7" opacity="0.28"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g)"/>
+  <rect width="1200" height="800" fill="url(#p)"/>
+  <g transform="translate(600,340)" fill="#c9a227" opacity="0.55">
+    <path d="M0 -101 L18 -18 L101 0 L18 18 L0 101 L-18 18 L-101 0 L-18 -18 Z"/>
+  </g>
+  <rect x="40" y="40" width="1120" height="720" fill="none" stroke="#c9a227" stroke-width="1.5" opacity="0.45"/>
+  <text x="50%" y="62%" text-anchor="middle" fill="#f4ead6" font-family="Georgia, serif" font-size="36">Welfare &amp; Community Service</text>
+</svg>

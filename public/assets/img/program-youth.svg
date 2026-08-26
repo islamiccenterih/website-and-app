@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400" fill="none">
+  <defs>
+    <linearGradient id="pyg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0e2a22"/>
+      <stop offset="1" stop-color="#1e4a3b"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="400" fill="url(#pyg)"/>
+  <g opacity="0.22" stroke="#c9a227" stroke-width="1">
+    <path d="M320 56l92 188H228z"/>
+  </g>
+  <g transform="translate(320 210)" stroke="#c9a227" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" fill="none">
+    <circle cx="0" cy="-8" r="28"/>
+    <path d="M-38 88c6-40 20-58 38-58s32 18 38 58"/>
+    <path d="M-22 34l-36 18M22 34l36 18"/>
+    <path d="M-70-70c28-6 48 8 58 28-32 4-52-6-58-28z"/>
+  </g>
+  <path d="M402 118l8 18 20 3-16 12 5 20-17-11-17 11 5-20-16-12 20-3z" fill="#c9a227"/>
+</svg>
