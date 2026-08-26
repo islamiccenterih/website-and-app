@@ -1,0 +1,33 @@
+Islamic Center Firozabad — upload this folder to hosting
+========================================================
+
+Site files are unchanged. This zip is the full project.
+
+1. Upload the whole folder (app, config, database, public, storage, .htaccess, README.md).
+
+2. In cPanel → Domains, set Document Root to:
+     .../islamic-center-firozabad/public
+   If the host only allows public_html, copy public/ contents into public_html
+   and keep app, config, database, storage one level above public_html.
+   The root .htaccess also works if you unzip everything inside public_html.
+
+3. Create a MySQL database (utf8mb4_unicode_ci). Import IN THIS ORDER:
+     database/schema.sql
+     database/seed.sql
+   Optional (this copy of the current demo content):
+     database/islamic_center_current.sql
+   If current dump fails because tables already exist, import only current
+   after schema, or empty the database and import current dump alone.
+
+4. Edit config/config.php:
+     app.url  = https://your-domain.com   (no trailing slash)
+     db.name / db.user / db.pass = hosting database
+     app.env  = production
+
+5. Folders must be writable: storage/  and  public/uploads/
+
+Demo logins (change after first login):
+  Admin    admin@example.com    Admin@12345
+  Student  student@example.com  Student@12345
+
+PHP 8.1+ with pdo_mysql, mbstring, gd, json, fileinfo.
