@@ -29,8 +29,8 @@
     if (silver) silver.textContent = rupee(spot.silver_nisab_inr);
     if (g10) g10.textContent = rupee(spot.gold_per_10g_inr) + ' / 10g 24k';
     if (sKg) sKg.textContent = rupee(spot.silver_per_kg_inr) + ' / kg';
-    if (date) date.textContent = spot.for_date || '';
-    if (note) note.textContent = spot.stale ? 'Last saved rates' : 'Live spot · India (INR)';
+    if (date) date.textContent = lastFetchAt ? istClock(lastFetchAt) : (spot.for_date || '');
+    if (note) note.textContent = spot.stale ? 'Saved rates · live feed reconnecting…' : 'Live gold & silver · INR · refreshes every 10s';
     if (errorBox) {
       if (spot.error) {
         errorBox.hidden = false;
@@ -62,10 +62,30 @@
   };
 
   let liveSpot = null;
+  let lastFetchAt = 0;
+  let fetching = false;
   const goldG = Number(root.getAttribute('data-gold-nisab-g') || 87.48);
   const silverG = Number(root.getAttribute('data-silver-nisab-g') || 612.36);
   const rate = Number(root.getAttribute('data-zakat-rate') || 2.5);
   const method = root.getAttribute('data-nisab-method') || 'lower';
+  const clockEl = root.querySelector('[data-spot-clock]');
+  const noteEl = root.querySelector('[data-spot-note]');
+
+  const istClock = (ms) => new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  }).format(new Date(ms));
+
+  const paintClock = () => {
+    if (!clockEl || !lastFetchAt) return;
+    clockEl.textContent = istClock(lastFetchAt);
+    if (noteEl && liveSpot && liveSpot.ok && !liveSpot.stale) {
+      noteEl.textContent = 'Live gold & silver · INR · refreshes every 10s';
+    }
+  };
 
   const money = (value) => {
     const n = parseFloat(String(value || '0').replace(/[,₹\s]/g, '')) || 0;
@@ -133,24 +153,35 @@
 
   const nisabUrl = root.getAttribute('data-nisab-url') || '/api/zakat/nisab';
   const loadNisab = () => {
+    if (fetching) return Promise.resolve();
+    fetching = true;
     const apply = (spot) => {
-      if (spot && spot.ok) liveSpot = spot;
+      fetching = false;
+      if (!spot || !spot.ok) return;
+      const changed = !liveSpot || Number(liveSpot.gold_per_gram_inr) !== Number(spot.gold_per_gram_inr)
+        || Number(liveSpot.silver_per_gram_inr) !== Number(spot.silver_per_gram_inr);
+      liveSpot = spot;
+      lastFetchAt = Date.now();
       paintNisab(spot);
-      if (form && [...form.querySelectorAll('input,select')].some((el) => el.value)) {
+      paintClock();
+      if (changed && form && [...form.querySelectorAll('input,select')].some((el) => el.value)) {
         calculate();
       }
     };
+    const fail = () => { fetching = false; };
     const localApi = () => fetch(nisabUrl, { headers: { Accept: 'application/json' } })
       .then((res) => res.json())
-      .then(apply);
+      .then(apply)
+      .catch(fail);
     if (window.ICLive && typeof ICLive.metalSpot === 'function') {
       return ICLive.metalSpot({ gold_nisab_g: goldG, silver_nisab_g: silverG, rate, nisab_method: method })
         .then(apply)
         .catch(localApi);
     }
-    return localApi().catch(() => {});
+    return localApi();
   };
 
   loadNisab();
-  setInterval(loadNisab, 60000);
+  setInterval(loadNisab, 10000);
+  setInterval(paintClock, 1000);
 })();

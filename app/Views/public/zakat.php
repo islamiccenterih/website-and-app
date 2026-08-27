@@ -37,9 +37,9 @@ $fmt = static function (float $n): string {
                 <em data-silver-kg><?= e($fmt((float) ($spot['silver_per_kg_inr'] ?? 0))) ?> / kg</em>
             </article>
             <article>
-                <span>Today’s rates</span>
-                <strong data-spot-date><?= e((string) ($spot['for_date'] ?? '')) ?></strong>
-                <em data-spot-note><?= !empty($spot['stale']) ? 'Last saved rates' : 'Live spot · India (INR)' ?></em>
+                <span>Live metal rates</span>
+                <strong data-spot-date data-spot-clock><?= e((string) ($spot['for_date'] ?? '')) ?></strong>
+                <em data-spot-note><?= !empty($spot['stale']) ? 'Connecting to live gold &amp; silver…' : 'Live spot · India (INR)' ?></em>
             </article>
         </div>
         <?php if (!empty($spot['error'])): ?>
@@ -83,4 +83,4 @@ $fmt = static function (float $n): string {
         </aside>
     </div>
 </section>
-<script src="<?= e(asset('assets/js/zakat.js')) ?>?v=3" defer></script>
+<script src="<?= e(asset('assets/js/zakat.js')) ?>?v=4" defer></script>
