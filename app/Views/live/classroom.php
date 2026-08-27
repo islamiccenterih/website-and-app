@@ -207,6 +207,6 @@ $isHost = $role === 'host';
         </button>
     </footer>
 </main>
-<script src="<?= e(asset('assets/js/live-class.js')) ?>?v=21" data-cfasync="false"></script>
+<script src="<?= e(asset('assets/js/live-class.js')) ?>?v=22" data-cfasync="false"></script>
 </body>
 </html>

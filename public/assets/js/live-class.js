@@ -42,7 +42,7 @@
     || location.hostname === 'localhost'
     || location.hostname === '127.0.0.1';
 
-  const FRAME_MS = 70;
+  const FRAME_MS = 280;
   const AUDIO_RATE = 16000;
 
   const iceServers = {
@@ -97,6 +97,9 @@
     frames: {},
     blobUrls: {},
     lastAudioSeq: {},
+    pcBornAt: {},
+    pcReadyAt: {},
+    needOffer: {},
     audioBuf: [],
     audioCtx: null,
     audioSrc: null,
@@ -225,12 +228,14 @@
     const video = tile ? tile.querySelector('video') : null;
     if (video && video.srcObject && video.videoWidth > 8 && video.readyState >= 2) return true;
     const ms = rtcStream(peerId);
-    return !!(ms && liveTracks(ms, 'video').length);
+    return !!(ms && ms.getVideoTracks().some((t) => t.readyState === 'live' && t.enabled && !t.muted));
   };
 
   const rtcAudioReady = (peerId) => {
+    if (!pcLive(peerId)) return false;
     const ms = rtcStream(peerId);
-    return !!(ms && liveTracks(ms, 'audio').length);
+    if (!ms) return false;
+    return ms.getAudioTracks().some((t) => t.readyState === 'live' && t.enabled);
   };
 
   const pcLive = (peerId) => {
@@ -289,9 +294,10 @@
       video.setAttribute('webkit-playsinline', '');
       if (ms) {
         if (video.srcObject !== ms) video.srcObject = ms;
-        const hasVideo = liveTracks(ms, 'video').length > 0;
+        const hasVideo = liveTracks(ms, 'video').some((t) => t.enabled && !t.muted);
         video.classList.toggle('is-blank', !hasVideo);
         video.muted = !state.wantSound;
+        video.volume = 1;
         playEl(video);
       } else {
         video.classList.add('is-blank');
@@ -568,14 +574,14 @@
 
   const applyBitrate = (pc, screen) => {
     if (!pc) return;
-    const max = screen ? 2200000 : 1600000;
+    const max = screen ? 1200000 : 500000;
     pc.getSenders().forEach((sender) => {
       if (!sender.track || sender.track.kind !== 'video') return;
       const params = sender.getParameters();
       if (!params.encodings || !params.encodings.length) params.encodings = [{}];
       params.encodings[0].maxBitrate = max;
-      params.encodings[0].maxFramerate = screen ? 24 : 30;
-      try { params.degradationPreference = screen ? 'maintain-resolution' : 'balanced'; } catch (_) {}
+      params.encodings[0].maxFramerate = screen ? 20 : 24;
+      try { params.degradationPreference = screen ? 'maintain-resolution' : 'maintain-framerate'; } catch (_) {}
       sender.setParameters(params).catch(() => {});
     });
   };
@@ -584,13 +590,17 @@
     const tx = state.tx[remoteId];
     if (!tx) return;
     const audio = micTrack();
+    if (audio) audio.enabled = !!state.audio;
     const video = outboundVideo();
     try {
-      if (tx.audio) await tx.audio.sender.replaceTrack(audio);
+      if (tx.audio) {
+        try { tx.audio.direction = 'sendrecv'; } catch (__) {}
+        await tx.audio.sender.replaceTrack(audio || null);
+      }
     } catch (_) {}
     try {
       if (tx.video) {
-        try { tx.video.direction = video ? 'sendrecv' : 'recvonly'; } catch (__) {}
+        try { tx.video.direction = 'sendrecv'; } catch (__) {}
         if (video) {
           try { video.contentHint = state.screen ? 'detail' : 'motion'; } catch (__) {}
         }
@@ -604,9 +614,9 @@
     const ids = Object.keys(state.pcs);
     for (const id of ids) {
       await applyLocalTracks(id);
-      if (renegotiate) {
-        try { await makeOffer(id); } catch (_) {}
-      }
+      if (!renegotiate) continue;
+      try { await makeOffer(id, false, true); } catch (_) {}
+      api(cfg.signalUrl, { to: id, kind: 'control', payload: { action: 'renegotiate' } }).catch(() => {});
     }
   };
 
@@ -614,11 +624,14 @@
     if (state.pcs[remoteId]) return state.pcs[remoteId];
     const pc = new RTCPeerConnection(iceServers);
     state.pcs[remoteId] = pc;
+    state.pcBornAt[remoteId] = Date.now();
     state.pendingIce[remoteId] = state.pendingIce[remoteId] || [];
-    const hasOutVideo = !!outboundVideo();
+    const audioTrack = micTrack();
+    if (audioTrack) audioTrack.enabled = !!state.audio;
+    const videoTrack = outboundVideo();
     state.tx[remoteId] = {
-      audio: pc.addTransceiver('audio', { direction: 'sendrecv' }),
-      video: pc.addTransceiver('video', { direction: hasOutVideo ? 'sendrecv' : 'recvonly' }),
+      audio: pc.addTransceiver(audioTrack || 'audio', { direction: 'sendrecv' }),
+      video: pc.addTransceiver(videoTrack || 'video', { direction: 'sendrecv' }),
     };
     applyLocalTracks(remoteId);
     applyBitrate(pc, state.screen);
@@ -657,10 +670,12 @@
     };
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'connected') {
+        state.pcReadyAt[remoteId] = Date.now();
         applyBitrate(pc, state.screen);
         bindRemote(remoteId);
       }
       if (pc.connectionState === 'failed') {
+        delete state.pcReadyAt[remoteId];
         makeOffer(remoteId, true).catch(() => {});
       }
       if (pc.connectionState === 'closed') {
@@ -669,9 +684,11 @@
     };
     pc.oniceconnectionstatechange = () => {
       if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+        state.pcReadyAt[remoteId] = Date.now();
         bindRemote(remoteId);
       }
       if (pc.iceConnectionState === 'failed') {
+        delete state.pcReadyAt[remoteId];
         makeOffer(remoteId, true).catch(() => {});
       }
     };
@@ -689,6 +706,10 @@
     delete state.offering[remoteId];
     delete state.makingOffer[remoteId];
     delete state.pendingIce[remoteId];
+    delete state.pcBornAt[remoteId];
+    delete state.pcReadyAt[remoteId];
+    delete state.needOffer[remoteId];
+    delete state.ignoreOffer[remoteId];
     if (state.blobUrls[remoteId]) {
       try { URL.revokeObjectURL(state.blobUrls[remoteId]); } catch (_) {}
       delete state.blobUrls[remoteId];
@@ -698,11 +719,20 @@
     if (remoteId !== state.peerId) removeTile(remoteId);
   };
 
-  const makeOffer = async (remoteId, iceRestart = false) => {
+  const makeOffer = async (remoteId, iceRestart = false, force = false) => {
     const pc = pcFor(remoteId);
-    if (state.offering[remoteId]) return;
-    if (pc.signalingState !== 'stable' && !iceRestart) return;
-    if (!iceRestart && pc.remoteDescription && pcLive(remoteId)) return;
+    if (state.offering[remoteId]) {
+      state.needOffer[remoteId] = { iceRestart: iceRestart || false, force: force || iceRestart };
+      return;
+    }
+    if (!force && !iceRestart && pc.signalingState === 'stable' && pc.remoteDescription && pcLive(remoteId)) {
+      await applyLocalTracks(remoteId);
+      return;
+    }
+    if (pc.signalingState !== 'stable' && !iceRestart) {
+      state.needOffer[remoteId] = { iceRestart: false, force: true };
+      return;
+    }
     state.offering[remoteId] = true;
     state.makingOffer[remoteId] = true;
     try {
@@ -714,6 +744,11 @@
     } finally {
       state.offering[remoteId] = false;
       state.makingOffer[remoteId] = false;
+      const queued = state.needOffer[remoteId];
+      if (queued) {
+        delete state.needOffer[remoteId];
+        makeOffer(remoteId, !!queued.iceRestart, !!queued.force).catch(() => {});
+      }
     }
   };
 
@@ -758,6 +793,9 @@
       }
       if (action === 'stop-screen' && state.screen) {
         await stopScreenShare(true);
+      }
+      if (action === 'renegotiate') {
+        makeOffer(from, false, true).catch(() => {});
       }
       return;
     }
@@ -827,7 +865,7 @@
   };
 
   const onLocalAudio = (ev) => {
-    if (!state.audio || !state.peerId) return;
+    if (!state.audio || !state.peerId || !remotesNeedHttpAudio()) return;
     const input = ev.inputBuffer.getChannelData(0);
     const fromRate = ev.inputBuffer.sampleRate || (state.audioCtx && state.audioCtx.sampleRate) || 48000;
     const down = downsample(input, fromRate, AUDIO_RATE);
@@ -929,8 +967,8 @@
       return;
     }
     const screen = !!state.screen;
-    const tw = screen ? 1280 : 960;
-    const th = screen ? 720 : 540;
+    const tw = screen ? 960 : 640;
+    const th = screen ? 540 : 360;
     if (!state.canvas) {
       state.canvas = document.createElement('canvas');
       state.canvasCtx = state.canvas.getContext('2d', { alpha: false });
@@ -951,20 +989,25 @@
       resolve(null);
       return;
     }
-    state.canvas.toBlob((blob) => resolve(blob || null), 'image/jpeg', screen ? 0.72 : 0.7);
+    state.canvas.toBlob((blob) => resolve(blob || null), 'image/jpeg', screen ? 0.58 : 0.5);
   });
+
+  const HTTP_GRACE_MS = 4000;
+
+  const peerNeedsHttp = (peerId) => {
+    if (pcLive(peerId)) return false;
+    const born = state.pcBornAt[peerId] || 0;
+    if (!born) return true;
+    return (Date.now() - born) > HTTP_GRACE_MS;
+  };
 
   const remotesNeedHttp = () => {
     const peers = (state.lastPeers || []).filter((p) => p && p.peer_id !== state.peerId);
     if (!peers.length) return false;
-    return peers.some((p) => !pcLive(p.peer_id) || !rtcVideoReady(p.peer_id));
+    return peers.some((p) => peerNeedsHttp(p.peer_id));
   };
 
-  const remotesNeedHttpAudio = () => {
-    const peers = (state.lastPeers || []).filter((p) => p && p.peer_id !== state.peerId);
-    if (!peers.length) return false;
-    return peers.some((p) => !pcLive(p.peer_id) || !rtcAudioReady(p.peer_id));
-  };
+  const remotesNeedHttpAudio = () => remotesNeedHttp();
 
   const pushMedia = async () => {
     if (state.pushing || !state.peerId || !cfg.pushUrl || state.leaving) return;
@@ -1020,6 +1063,7 @@
   const pullPeerMedia = async (peerId) => {
     if (!peerId || peerId === state.peerId || !cfg.frameUrl) return;
     const peer = (state.lastPeers || []).find((p) => p && p.peer_id === peerId);
+    if (!peerNeedsHttp(peerId)) return;
     const wantVideo = !rtcVideoReady(peerId) && (!peer || Number(peer.video_on) === 1 || Number(peer.screen_on) === 1 || Number(peer.has_frame) === 1);
     const wantAudio = !rtcAudioReady(peerId) && !!peer && Number(peer.audio_on) === 1 && !!cfg.audioUrl && state.wantSound;
     try {
@@ -1092,12 +1136,23 @@
     }
   };
 
-  const httpDelay = () => (remotesNeedHttp() || remotesNeedHttpAudio() ? FRAME_MS : 700);
+  const httpDelay = () => (remotesNeedHttp() ? FRAME_MS : 1600);
+
+  const tapHttpAudio = (on) => {
+    if (on && state.audio) {
+      hookLocalAudio(state.localStream);
+      return;
+    }
+    try { if (state.audioSrc) state.audioSrc.disconnect(); } catch (_) {}
+    state.audioSrc = null;
+    state.audioBuf = [];
+  };
 
   const armPush = () => {
     if (state.leaving) return;
     if (state.pushTimer) clearTimeout(state.pushTimer);
     state.pushTimer = setTimeout(async () => {
+      tapHttpAudio(remotesNeedHttpAudio() && state.audio);
       await pushMedia();
       armPush();
     }, httpDelay());
@@ -1113,14 +1168,12 @@
   };
 
   const startRelay = () => {
-    hookLocalAudio(state.localStream);
     armPush();
     armPull();
-    pushMedia();
-    pullMedia();
   };
 
   const stopRelay = () => {
+    tapHttpAudio(false);
     if (state.pushTimer) {
       clearTimeout(state.pushTimer);
       state.pushTimer = null;
@@ -1265,9 +1318,12 @@
   };
 
   const audioConstraints = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
-  const videoConstraints = () => (isPhone()
-    ? { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } }
-    : { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } });
+  const videoConstraints = () => ({
+    facingMode: 'user',
+    width: { ideal: 640, max: 960 },
+    height: { ideal: 360, max: 540 },
+    frameRate: { ideal: 24, max: 24 },
+  });
 
   const showLobbyPreview = () => {
     const preview = document.getElementById('live-lobby-preview');
@@ -1425,7 +1481,6 @@
   const unlockAudio = () => {
     state.wantSound = true;
     const ctx = ensureAudioContext();
-    hookLocalAudio(state.localStream);
     Object.keys(state.streams).forEach((id) => bindRemote(id));
     if (ctx && ctx.state !== 'suspended') showSoundBar(false);
   };
@@ -1507,17 +1562,19 @@
 
   const setMic = async (on) => {
     if (!state.localStream) return false;
+    let needRenegotiate = false;
     if (on) {
       let track = micTrack();
       if (!track) {
         try {
           const extra = await navigator.mediaDevices.getUserMedia({
-            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+            audio: audioConstraints,
           });
           extra.getVideoTracks().forEach((t) => t.stop());
           track = extra.getAudioTracks()[0];
           if (!track) throw new Error('No microphone track');
           state.localStream.addTrack(track);
+          needRenegotiate = true;
         } catch (err) {
           window.alert('Allow the microphone in the browser, then try again. (' + (err.message || err) + ')');
           return false;
@@ -1525,7 +1582,6 @@
       }
       track.enabled = true;
       state.audio = true;
-      hookLocalAudio(state.localStream);
     } else {
       const track = micTrack();
       if (track) track.enabled = false;
@@ -1533,7 +1589,7 @@
       state.audioBuf = [];
     }
     setCtl('mic', state.audio);
-    await applyLocalTracksAll(false);
+    await applyLocalTracksAll(needRenegotiate);
     api(cfg.mediaUrl, { audio: state.audio, video: state.video, screen: state.screen }).catch(() => {});
     return true;
   };
@@ -1799,7 +1855,6 @@
       if (state.mediaBusy) return;
       state.mediaBusy = true;
       setMic(!state.audio).finally(() => {
-        hookLocalAudio(state.localStream);
         state.mediaBusy = false;
       });
       return;

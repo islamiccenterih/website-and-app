@@ -158,8 +158,12 @@ final class LiveClassApiController extends Controller
         if ($to === '' || !in_array($kind, $allowed, true)) {
             json_response(['ok' => false, 'error' => 'Invalid signal.'], 422);
         }
-        if ($kind === 'control' && $ctx['panelRole'] !== 'host') {
-            json_response(['ok' => false, 'error' => 'Only the teacher can send that control.'], 403);
+        if ($kind === 'control') {
+            $action = is_array($payload) ? (string) ($payload['action'] ?? '') : '';
+            $studentOk = $action === 'renegotiate';
+            if ($ctx['panelRole'] !== 'host' && !$studentOk) {
+                json_response(['ok' => false, 'error' => 'Only the teacher can send that control.'], 403);
+            }
         }
         $svc->sendSignal((int) $ctx['class']['id'], $from, $to, $kind, $payload);
         json_response(['ok' => true]);
