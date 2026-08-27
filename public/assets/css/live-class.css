@@ -891,3 +891,30 @@ html:has(.live-body),
 
 .live-dock { flex-shrink: 0; }
 .live-top { flex-shrink: 0; }
+
+.live-app:fullscreen,
+.live-app:-webkit-full-screen {
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+  background: #071510;
+}
+
+.live-app:fullscreen .live-stage,
+.live-app:-webkit-full-screen .live-stage {
+  background: #071510;
+}
+
+@media (orientation: portrait) {
+  .live-app.is-fs-rotate:fullscreen .live-grid,
+  .live-app.is-fs-rotate:-webkit-full-screen .live-grid,
+  .live-app.is-fs-rotate .live-grid {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100dvh;
+    height: 100dvw;
+    transform: translate(-50%, -50%) rotate(90deg);
+    transform-origin: center center;
+  }
+}

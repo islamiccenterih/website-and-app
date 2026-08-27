@@ -52,6 +52,11 @@ $router->get('/api/zakat/nisab', [PublicSite\ZakatController::class, 'nisab']);
 $router->get('/api/zakat/calculate', [PublicSite\ZakatController::class, 'calculate']);
 $router->post('/api/zakat/calculate', [PublicSite\ZakatController::class, 'calculate']);
 $router->get('/api/ramadan', [PublicSite\RamadanController::class, 'api']);
+$router->get('/privacy-policy', [PublicSite\LegalController::class, 'privacy']);
+$router->get('/privacy', [PublicSite\LegalController::class, 'privacy']);
+$router->get('/terms-and-conditions', [PublicSite\LegalController::class, 'terms']);
+$router->get('/terms', [PublicSite\LegalController::class, 'terms']);
+$router->get('/disclaimer', [PublicSite\LegalController::class, 'disclaimer']);
 $router->get('/robots.txt', [PublicSite\SeoController::class, 'robots']);
 $router->get('/sitemap.xml', [PublicSite\SeoController::class, 'sitemap']);
 

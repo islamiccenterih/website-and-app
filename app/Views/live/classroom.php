@@ -20,8 +20,8 @@ $isHost = $role === 'host';
     <?php endif; ?>
     <link rel="icon" href="<?= e(asset('assets/img/favicon.png')) ?>">
     <link rel="preload" href="<?= e(asset('assets/fonts/merriweather-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=74">
-    <link rel="stylesheet" href="<?= e(asset('assets/css/live-class.css')) ?>?v=18">
+    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=83">
+    <link rel="stylesheet" href="<?= e(asset('assets/css/live-class.css')) ?>?v=19">
 </head>
 <body class="live-body">
 <main class="live-app"
@@ -157,6 +157,15 @@ $isHost = $role === 'host';
                 <span class="live-ctl-state">Open</span>
             </span>
         </button>
+        <button type="button" data-ctl="fs" class="live-ctl" aria-pressed="false" title="Fullscreen">
+            <span class="live-ctl-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H4v4M16 3h4v4M8 21H4v-4M16 21h4v-4"/></svg>
+            </span>
+            <span class="live-ctl-copy">
+                <span class="live-ctl-label">Full</span>
+                <span class="live-ctl-state">Screen</span>
+            </span>
+        </button>
         <button type="button" data-ctl="screen" class="live-ctl" id="live-share-btn" aria-pressed="false"<?= $isHost ? '' : ' hidden' ?> title="Share screen">
             <span class="live-ctl-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
@@ -198,6 +207,6 @@ $isHost = $role === 'host';
         </button>
     </footer>
 </main>
-<script src="<?= e(asset('assets/js/live-class.js')) ?>?v=19" data-cfasync="false"></script>
+<script src="<?= e(asset('assets/js/live-class.js')) ?>?v=21" data-cfasync="false"></script>
 </body>
 </html>

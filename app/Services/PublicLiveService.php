@@ -134,7 +134,7 @@ final class PublicLiveService
             return false;
         }
         $size = (int) filesize($tmpPath);
-        if ($size < 32 || $size > 1200000) {
+        if ($size < 32 || $size > 2500000) {
             return false;
         }
         $info = @getimagesize($tmpPath);
@@ -156,7 +156,7 @@ final class PublicLiveService
             return false;
         }
         $size = (int) filesize($tmpPath);
-        if ($size < 8 || $size > 250000) {
+        if ($size < 8 || $size > 400000) {
             return false;
         }
         $dir = $this->mediaDir($sessionId);

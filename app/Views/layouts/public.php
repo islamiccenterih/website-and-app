@@ -16,6 +16,13 @@ $lang = \App\I18n\Lang::code();
 $langDir = \App\I18n\Lang::dir();
 $langHtml = \App\I18n\Lang::html();
 $footerNote = trim((string) setting('footer_note', ''));
+$legalHeading = trim((string) setting('footer_legal_heading', ''));
+if ($legalHeading === '') {
+    $legalHeading = trim((string) setting('footer_explore_heading', 'Legal'));
+}
+if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
+    $legalHeading = 'Legal';
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?= e($langHtml) ?>" dir="<?= e($langDir) ?>">
@@ -37,7 +44,7 @@ $footerNote = trim((string) setting('footer_note', ''));
     <?php endif; ?>
     <link rel="icon" href="<?= e(asset('assets/img/favicon.png')) ?>">
     <link rel="preload" href="<?= e(asset('assets/fonts/merriweather-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=74">
+    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=83">
 </head>
 <body class="<?= faith_terms_active() ? 'has-faith-terms' : '' ?>">
 <a class="skip-link" href="#main"><?= e(tt('Skip to content')) ?></a>
@@ -114,7 +121,7 @@ $footerNote = trim((string) setting('footer_note', ''));
 <main id="main">
     <?= $content ?>
 </main>
-<footer class="site-footer">
+<footer class="site-footer" id="site-footer">
     <div class="container footer-grid">
         <div class="footer-brand">
             <a class="footer-logo" href="<?= e(url('/')) ?>">
@@ -127,26 +134,26 @@ $footerNote = trim((string) setting('footer_note', ''));
                 <?php endif; ?>
             </div>
         </div>
-        <div class="footer-col">
+        <div class="footer-col footer-visit">
             <h3><?= e(tt((string) setting('footer_visit_heading', 'Visit') ?: 'Visit')) ?></h3>
-            <p><?= e((string) setting('contact_address', '')) ?></p>
+            <p class="footer-address"><?= e((string) setting('contact_address', '')) ?></p>
             <p class="footer-contact">
                 <a href="mailto:<?= e((string) setting('contact_email', '')) ?>"><?= e((string) setting('contact_email', '')) ?></a>
                 <?php if (setting('contact_phone')): ?><span><?= e((string) setting('contact_phone', '')) ?></span><?php endif; ?>
             </p>
         </div>
-        <div class="footer-col">
-            <h3><?= e(tt((string) setting('footer_explore_heading', 'Explore') ?: 'Explore')) ?></h3>
-            <div class="footer-links">
+        <div class="footer-col footer-legal">
+            <h3><?= e(tt($legalHeading)) ?></h3>
+            <nav class="footer-links" aria-label="<?= e(tt('Legal')) ?>">
                 <?php foreach (footer_links() as $link): ?>
                     <a href="<?= e(str_starts_with($link['url'], 'http') ? $link['url'] : url($link['url'])) ?>"><?= e($link['label']) ?></a>
                 <?php endforeach; ?>
-            </div>
+            </nav>
         </div>
     </div>
     <div class="container footer-bottom">
         <span><?= e((string) setting('footer_copyright') ?: ('© ' . date('Y') . ' ' . site_name() . '. All rights reserved.')) ?></span>
-        <span><?= e($adminPrefix) ?> <a href="<?= e(url('/admin/login')) ?>"><?= e(tt((string) setting('footer_admin_label', 'Admin login') ?: 'Admin login')) ?></a></span>
+        <span class="footer-admin"><span class="footer-admin-prefix"><?= e($adminPrefix) ?></span> <a href="<?= e(url('/admin/login')) ?>"><?= e(tt((string) setting('footer_admin_label', 'Admin login') ?: 'Admin login')) ?></a></span>
     </div>
 </footer>
 <div class="scroll-bar" data-scroll-bar aria-hidden="true"></div>

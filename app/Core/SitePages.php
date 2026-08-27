@@ -170,6 +170,33 @@ final class SitePages
                     ['href' => '/admin/live-now', 'label' => 'Live now'],
                 ],
             ],
+            'privacy' => [
+                'name' => 'Privacy Policy',
+                'url' => '/privacy-policy',
+                'module' => 'pages',
+                'copy' => 'privacy',
+                'fields' => ['kicker', 'title', 'lead'],
+                'blurb' => 'Privacy policy heading and introduction. The full legal text is on the public page.',
+                'actions' => [],
+            ],
+            'terms' => [
+                'name' => 'Terms & Conditions',
+                'url' => '/terms-and-conditions',
+                'module' => 'pages',
+                'copy' => 'terms',
+                'fields' => ['kicker', 'title', 'lead'],
+                'blurb' => 'Terms heading and introduction. The full legal text is on the public page.',
+                'actions' => [],
+            ],
+            'disclaimer' => [
+                'name' => 'Disclaimer',
+                'url' => '/disclaimer',
+                'module' => 'pages',
+                'copy' => 'disclaimer',
+                'fields' => ['kicker', 'title', 'lead'],
+                'blurb' => 'Disclaimer heading and introduction. The full legal text is on the public page.',
+                'actions' => [],
+            ],
         ];
     }
 
@@ -408,6 +435,21 @@ final class SitePages
                 'kicker' => 'On this website',
                 'title' => 'Live',
                 'lead' => 'When the center goes live from a phone or laptop, the stream plays here. No YouTube account is needed.',
+            ],
+            'privacy' => [
+                'kicker' => 'Your information',
+                'title' => 'Privacy Policy',
+                'lead' => 'What this website collects, why we keep it, and how you can ask for a copy or a correction.',
+            ],
+            'terms' => [
+                'kicker' => 'Using this website',
+                'title' => 'Terms & Conditions',
+                'lead' => 'The rules for using this website, student login, live classes, and Live now.',
+            ],
+            'disclaimer' => [
+                'kicker' => 'Please read',
+                'title' => 'Disclaimer',
+                'lead' => 'Limits of fatawa, prayer times, qibla, zakat estimates, and live streams on this website.',
             ],
         ];
         return $all[$copyKey] ?? [];

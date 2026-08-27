@@ -6,7 +6,7 @@
     <title><?= e($pageTitle ?? 'Panel') ?></title>
     <link rel="icon" href="<?= e(asset('assets/img/favicon.png')) ?>">
     <link rel="preload" href="<?= e(asset('assets/fonts/merriweather-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=74">
+    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=83">
     <meta name="robots" content="noindex,nofollow">
 </head>
 <body>

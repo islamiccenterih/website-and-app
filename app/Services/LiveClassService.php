@@ -478,7 +478,7 @@ final class LiveClassService
             return false;
         }
         $size = (int) filesize($tmpPath);
-        if ($size < 32 || $size > 1200000) {
+        if ($size < 32 || $size > 2500000) {
             return false;
         }
         $info = @getimagesize($tmpPath);

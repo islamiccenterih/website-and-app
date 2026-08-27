@@ -1,11 +1,22 @@
 (() => {
   const iceServers = {
-    iceCandidatePoolSize: 4,
+    iceCandidatePoolSize: 8,
+    bundlePolicy: 'max-bundle',
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
       { urls: 'stun:stun2.l.google.com:19302' },
       { urls: 'stun:stun.cloudflare.com:3478' },
+      {
+        urls: [
+          'turn:openrelay.metered.ca:80',
+          'turn:openrelay.metered.ca:443',
+          'turn:openrelay.metered.ca:80?transport=tcp',
+          'turns:openrelay.metered.ca:443?transport=tcp',
+        ],
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
     ],
   };
 
@@ -42,7 +53,7 @@
   const canShareScreen = !!(navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === 'function');
   const AUDIO = { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 };
   const POLL_MS = 280;
-  const FRAME_MS = 120;
+  const FRAME_MS = 70;
   const AUDIO_RATE = 16000;
 
   const packSdp = (desc) => {
@@ -128,10 +139,10 @@
   };
 
   const bitrateFor = (count, screen) => {
-    if (screen) return 1100000;
-    if (count > 20) return 250000;
-    if (count > 6) return 400000;
-    return 550000;
+    if (screen) return 2500000;
+    if (count > 20) return 900000;
+    if (count > 8) return 1400000;
+    return 1800000;
   };
 
   const hintTrack = (track, hint) => {
@@ -147,10 +158,10 @@
       const params = sender.getParameters();
       if (!params.encodings || !params.encodings.length) params.encodings = [{}];
       params.encodings[0].maxBitrate = max;
-      params.encodings[0].maxFramerate = screen ? 24 : 24;
+      params.encodings[0].maxFramerate = screen ? 24 : 30;
       if (scale > 1) params.encodings[0].scaleResolutionDownBy = scale;
       else delete params.encodings[0].scaleResolutionDownBy;
-      try { params.degradationPreference = 'maintain-framerate'; } catch (e) {}
+      try { params.degradationPreference = screen ? 'maintain-resolution' : 'balanced'; } catch (e) {}
       sender.setParameters(params).catch(() => {});
     });
   };
@@ -162,15 +173,12 @@
     return 'Choose a window, a tab, or the whole screen.';
   };
 
-  const landscapeConstraints = () => {
-    const phone = isPhone();
-    return {
-      width: { ideal: phone ? 1280 : 1920 },
-      height: { ideal: phone ? 720 : 1080 },
+    const landscapeConstraints = () => ({
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
       aspectRatio: { ideal: 16 / 9 },
-      frameRate: { ideal: 24, max: 30 },
-    };
-  };
+      frameRate: { ideal: 30, max: 30 },
+    });
 
   const pickCameraId = async (facing, excludeId) => {
     try {
@@ -214,6 +222,13 @@
         return;
       }
     } catch (e) {}
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock('landscape-primary');
+        if (box) box.classList.remove('is-fs-rotate');
+        return;
+      }
+    } catch (e) {}
     if (isPhone() && window.matchMedia('(orientation: portrait)').matches && box) {
       box.classList.add('is-fs-rotate');
     }
@@ -223,7 +238,11 @@
     if (!el) return false;
     try {
       if (el.requestFullscreen) {
-        await el.requestFullscreen();
+        try {
+          await el.requestFullscreen({ navigationUI: 'hide' });
+        } catch (err) {
+          await el.requestFullscreen();
+        }
         return true;
       }
       if (el.webkitRequestFullscreen) {
@@ -241,11 +260,11 @@
         return;
       } catch (e) {}
     }
-    if (await tryFullscreen(video)) {
+    if (await tryFullscreen(box)) {
       await lockLandscape(box);
       return;
     }
-    if (await tryFullscreen(box)) {
+    if (await tryFullscreen(video)) {
       await lockLandscape(box);
       return;
     }
@@ -534,8 +553,8 @@
       }
       if (!state.canvas) {
         state.canvas = document.createElement('canvas');
-        state.canvas.width = 960;
-        state.canvas.height = 540;
+        state.canvas.width = 1280;
+        state.canvas.height = 720;
         state.canvasCtx = state.canvas.getContext('2d', { alpha: false });
       }
       const ctx = state.canvasCtx;
@@ -554,17 +573,27 @@
         resolve(null);
         return;
       }
-      state.canvas.toBlob((blob) => resolve(blob || null), 'image/jpeg', 0.58);
+      state.canvas.toBlob((blob) => resolve(blob || null), 'image/jpeg', 0.74);
     });
+
+    const rtcViewerReady = () => {
+      const ids = Object.keys(state.pcs);
+      if (!ids.length) return false;
+      return ids.every((id) => {
+        const pc = state.pcs[id];
+        return pc && (pc.connectionState === 'connected' || pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed');
+      });
+    };
 
     const pushMedia = async () => {
       if (state.pushing || !state.sessionId) return;
       const pushUrl = root.getAttribute('data-push-url');
       if (!pushUrl) return;
+      const skipVideo = rtcViewerReady();
       state.pushing = true;
       try {
-        const frame = await captureFrame();
-        const audio = state.muted ? null : drainAudio();
+        const frame = skipVideo ? null : await captureFrame();
+        const audio = (state.muted || skipVideo) ? null : drainAudio();
         if (!frame && !audio) return;
         const fd = new FormData();
         fd.append('session_id', String(state.sessionId));
@@ -582,14 +611,20 @@
       }
     };
 
+    const hostPushDelay = () => (rtcViewerReady() ? 800 : FRAME_MS);
+
     const startPush = () => {
-      if (state.pushTimer) clearInterval(state.pushTimer);
-      state.pushTimer = setInterval(pushMedia, FRAME_MS);
-      pushMedia();
+      const tick = async () => {
+        await pushMedia();
+        if (!state.sessionId) return;
+        state.pushTimer = setTimeout(tick, hostPushDelay());
+      };
+      if (state.pushTimer) clearTimeout(state.pushTimer);
+      tick();
     };
 
     const stopPush = () => {
-      if (state.pushTimer) clearInterval(state.pushTimer);
+      if (state.pushTimer) clearTimeout(state.pushTimer);
       state.pushTimer = null;
     };
 
@@ -1021,6 +1056,7 @@
       joining: false,
       expectLive: false,
       mediaTimer: null,
+      mediaLoop: false,
       pulling: false,
       lastAudioSeq: 0,
       blobUrl: '',
@@ -1064,11 +1100,7 @@
       }
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return null;
-      try {
-        state.audioCtx = new AC({ sampleRate: AUDIO_RATE });
-      } catch (e) {
-        try { state.audioCtx = new AC(); } catch (err) { return null; }
-      }
+        try { state.audioCtx = new AC(); } catch (e) {}
       state.audioAt = 0;
       return state.audioCtx;
     };
@@ -1094,8 +1126,8 @@
       src.buffer = buf;
       src.connect(ctx.destination);
       const now = ctx.currentTime;
-      if (state.audioAt < now + 0.04) state.audioAt = now + 0.04;
-      if (state.audioAt - now > 0.7) state.audioAt = now + 0.04;
+      if (state.audioAt < now + 0.02) state.audioAt = now + 0.02;
+      if (state.audioAt - now > 1.15) state.audioAt = now + 0.02;
       src.start(state.audioAt);
       state.audioAt += buf.duration;
     };
@@ -1152,9 +1184,11 @@
         state.pc = null;
       }
       if (state.mediaTimer) {
+        clearTimeout(state.mediaTimer);
         clearInterval(state.mediaTimer);
         state.mediaTimer = null;
       }
+      state.mediaLoop = false;
       if (player) player.classList.remove('is-fs-rotate');
     };
 
@@ -1184,8 +1218,10 @@
       const frameUrl = root.getAttribute('data-frame-url');
       const audioUrl = root.getAttribute('data-audio-url');
       if (!frameUrl) return;
+      if (rtcHasVideo() && fallback) fallback.hidden = true;
       state.pulling = true;
       try {
+        if (!rtcHasVideo()) {
         const res = await fetch(frameUrl + '?t=' + Date.now(), {
           cache: 'no-store',
           credentials: 'same-origin',
@@ -1209,7 +1245,8 @@
             setLiveUi();
           }
         }
-        const rtcAudio = !!(video && !video.muted && video.srcObject
+        }
+        const rtcAudio = !!(video && video.srcObject
           && typeof video.srcObject.getAudioTracks === 'function'
           && video.srcObject.getAudioTracks().some((t) => t.readyState === 'live'));
         if (audioUrl && state.wantSound && !rtcAudio) {
@@ -1233,9 +1270,18 @@
     };
 
     const startMediaPull = () => {
-      if (state.mediaTimer) return;
-      pullMedia();
-      state.mediaTimer = setInterval(pullMedia, FRAME_MS);
+      if (state.mediaLoop) return;
+      state.mediaLoop = true;
+      const tick = async () => {
+        await pullMedia();
+        if (!state.expectLive) {
+          state.mediaLoop = false;
+          state.mediaTimer = null;
+          return;
+        }
+        state.mediaTimer = setTimeout(tick, rtcHasVideo() ? 800 : FRAME_MS);
+      };
+      tick();
     };
 
     if (video) {

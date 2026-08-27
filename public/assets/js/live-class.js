@@ -42,15 +42,26 @@
     || location.hostname === 'localhost'
     || location.hostname === '127.0.0.1';
 
-  const FRAME_MS = 90;
+  const FRAME_MS = 70;
   const AUDIO_RATE = 16000;
 
   const iceServers = {
-    iceCandidatePoolSize: 4,
+    iceCandidatePoolSize: 8,
+    bundlePolicy: 'max-bundle',
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
       { urls: 'stun:stun.cloudflare.com:3478' },
+      {
+        urls: [
+          'turn:openrelay.metered.ca:80',
+          'turn:openrelay.metered.ca:443',
+          'turn:openrelay.metered.ca:80?transport=tcp',
+          'turns:openrelay.metered.ca:443?transport=tcp',
+        ],
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
     ],
   };
 
@@ -207,15 +218,32 @@
     }
   };
 
+  const rtcStream = (peerId) => state.streams[peerId] || null;
+
   const rtcVideoReady = (peerId) => {
     const tile = document.getElementById(tileId(peerId));
     const video = tile ? tile.querySelector('video') : null;
-    return !!(video && video.videoWidth > 8 && video.readyState >= 2);
+    if (video && video.srcObject && video.videoWidth > 8 && video.readyState >= 2) return true;
+    const ms = rtcStream(peerId);
+    return !!(ms && liveTracks(ms, 'video').length);
+  };
+
+  const rtcAudioReady = (peerId) => {
+    const ms = rtcStream(peerId);
+    return !!(ms && liveTracks(ms, 'audio').length);
+  };
+
+  const pcLive = (peerId) => {
+    const pc = state.pcs[peerId];
+    if (!pc) return false;
+    const ice = pc.iceConnectionState;
+    const conn = pc.connectionState;
+    return ice === 'connected' || ice === 'completed' || conn === 'connected';
   };
 
   const streamHasLiveVideo = (peerId) => {
     if (peerId === state.peerId) return rtcVideoReady(peerId);
-    return !!state.frames[peerId];
+    return rtcVideoReady(peerId) || !!state.frames[peerId];
   };
 
   const applyTilePicture = (peerId) => {
@@ -224,9 +252,10 @@
     const video = tile.querySelector('video');
     const img = tile.querySelector('.live-tile-frame');
     const isLocal = peerId === state.peerId;
-    const httpOn = !!state.frames[peerId];
+    const rtcOn = !isLocal && rtcVideoReady(peerId);
+    const httpOn = !isLocal && !!state.frames[peerId] && !rtcOn;
     if (img) {
-      if (!isLocal && httpOn) {
+      if (httpOn) {
         img.hidden = false;
         if (img.src !== state.frames[peerId]) img.src = state.frames[peerId];
       } else {
@@ -234,13 +263,13 @@
       }
     }
     if (video && !isLocal) {
-      video.muted = true;
-      video.classList.add('is-blank');
+      video.muted = !state.wantSound;
+      video.classList.toggle('is-blank', !rtcOn);
     }
     const sharing = tile.classList.contains('is-screen');
-    const camOn = sharing || (isLocal ? rtcVideoReady(peerId) : httpOn);
+    const camOn = sharing || (isLocal ? rtcVideoReady(peerId) : (rtcOn || httpOn));
     if (!sharing) tile.classList.toggle('is-cam-off', !camOn);
-    tile.classList.toggle('has-frame', !isLocal && httpOn);
+    tile.classList.toggle('has-frame', httpOn);
     const flagsEl = tile.querySelector('.live-tile-flags');
     if (flagsEl && !isLocal) {
       const parts = String(flagsEl.textContent || '').split(' · ').map((s) => s.trim()).filter(Boolean)
@@ -253,10 +282,20 @@
   const bindRemote = (peerId) => {
     const tile = document.getElementById(tileId(peerId));
     const video = tile ? tile.querySelector('video') : null;
+    const ms = rtcStream(peerId);
     if (video) {
-      video.muted = true;
-      video.srcObject = null;
-      video.classList.add('is-blank');
+      video.playsInline = true;
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      if (ms) {
+        if (video.srcObject !== ms) video.srcObject = ms;
+        const hasVideo = liveTracks(ms, 'video').length > 0;
+        video.classList.toggle('is-blank', !hasVideo);
+        video.muted = !state.wantSound;
+        playEl(video);
+      } else {
+        video.classList.add('is-blank');
+      }
     }
     applyTilePicture(peerId);
   };
@@ -380,7 +419,8 @@
     if (peerId === state.peerId) {
       bindLocal();
     } else {
-      bindRemote(peerId);
+      applyTilePicture(peerId);
+      if (rtcStream(peerId)) bindRemote(peerId);
     }
     layoutGrid();
     return tile;
@@ -526,6 +566,20 @@
     }
   };
 
+  const applyBitrate = (pc, screen) => {
+    if (!pc) return;
+    const max = screen ? 2200000 : 1600000;
+    pc.getSenders().forEach((sender) => {
+      if (!sender.track || sender.track.kind !== 'video') return;
+      const params = sender.getParameters();
+      if (!params.encodings || !params.encodings.length) params.encodings = [{}];
+      params.encodings[0].maxBitrate = max;
+      params.encodings[0].maxFramerate = screen ? 24 : 30;
+      try { params.degradationPreference = screen ? 'maintain-resolution' : 'balanced'; } catch (_) {}
+      sender.setParameters(params).catch(() => {});
+    });
+  };
+
   const applyLocalTracks = async (remoteId) => {
     const tx = state.tx[remoteId];
     if (!tx) return;
@@ -541,6 +595,7 @@
           try { video.contentHint = state.screen ? 'detail' : 'motion'; } catch (__) {}
         }
         await tx.video.sender.replaceTrack(video || null);
+        applyBitrate(state.pcs[remoteId], state.screen);
       }
     } catch (_) {}
   };
@@ -566,6 +621,7 @@
       video: pc.addTransceiver('video', { direction: hasOutVideo ? 'sendrecv' : 'recvonly' }),
     };
     applyLocalTracks(remoteId);
+    applyBitrate(pc, state.screen);
     pc.onicecandidate = (ev) => {
       if (ev.candidate) {
         const payload = typeof ev.candidate.toJSON === 'function'
@@ -600,6 +656,10 @@
       refresh();
     };
     pc.onconnectionstatechange = () => {
+      if (pc.connectionState === 'connected') {
+        applyBitrate(pc, state.screen);
+        bindRemote(remoteId);
+      }
       if (pc.connectionState === 'failed') {
         makeOffer(remoteId, true).catch(() => {});
       }
@@ -608,6 +668,9 @@
       }
     };
     pc.oniceconnectionstatechange = () => {
+      if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+        bindRemote(remoteId);
+      }
       if (pc.iceConnectionState === 'failed') {
         makeOffer(remoteId, true).catch(() => {});
       }
@@ -639,6 +702,7 @@
     const pc = pcFor(remoteId);
     if (state.offering[remoteId]) return;
     if (pc.signalingState !== 'stable' && !iceRestart) return;
+    if (!iceRestart && pc.remoteDescription && pcLive(remoteId)) return;
     state.offering[remoteId] = true;
     state.makingOffer[remoteId] = true;
     try {
@@ -697,9 +761,6 @@
       }
       return;
     }
-    if (sig.kind === 'offer' || sig.kind === 'answer' || sig.kind === 'ice') {
-      return;
-    }
     const pc = pcFor(from);
     const polite = state.peerId > from;
     if (sig.kind === 'offer') {
@@ -717,14 +778,15 @@
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       await api(cfg.signalUrl, { to: from, kind: 'answer', payload: pc.localDescription });
+      bindRemote(from);
     } else if (sig.kind === 'answer') {
       if (state.ignoreOffer[from]) return;
       if (pc.signalingState === 'have-local-offer') {
         await pc.setRemoteDescription(new RTCSessionDescription(sig.payload));
         await flushIce(from);
+        bindRemote(from);
       }
     } else if (sig.kind === 'ice' && sig.payload) {
-      const pc = pcFor(from);
       if (pc.remoteDescription) {
         try {
           await pc.addIceCandidate(new RTCIceCandidate(sig.payload));
@@ -742,7 +804,14 @@
     if (me) {
       setShareVisible(cfg.role === 'host' || Number(me.can_share) === 1 || Number(me.is_presenter) === 1);
     }
-    peers.forEach((p) => ensureTile(p.peer_id, p));
+    peers.forEach((p) => {
+      ensureTile(p.peer_id, p);
+      if (p.peer_id === state.peerId) return;
+      pcFor(p.peer_id);
+      if (state.peerId > p.peer_id) {
+        makeOffer(p.peer_id).catch(() => {});
+      }
+    });
     Object.keys(state.pcs).forEach((id) => {
       if (!ids.has(id) && id !== state.peerId) closePeer(id);
     });
@@ -860,8 +929,8 @@
       return;
     }
     const screen = !!state.screen;
-    const tw = screen ? 960 : 480;
-    const th = screen ? 540 : 270;
+    const tw = screen ? 1280 : 960;
+    const th = screen ? 720 : 540;
     if (!state.canvas) {
       state.canvas = document.createElement('canvas');
       state.canvasCtx = state.canvas.getContext('2d', { alpha: false });
@@ -882,15 +951,30 @@
       resolve(null);
       return;
     }
-    state.canvas.toBlob((blob) => resolve(blob || null), 'image/jpeg', screen ? 0.55 : 0.5);
+    state.canvas.toBlob((blob) => resolve(blob || null), 'image/jpeg', screen ? 0.72 : 0.7);
   });
+
+  const remotesNeedHttp = () => {
+    const peers = (state.lastPeers || []).filter((p) => p && p.peer_id !== state.peerId);
+    if (!peers.length) return false;
+    return peers.some((p) => !pcLive(p.peer_id) || !rtcVideoReady(p.peer_id));
+  };
+
+  const remotesNeedHttpAudio = () => {
+    const peers = (state.lastPeers || []).filter((p) => p && p.peer_id !== state.peerId);
+    if (!peers.length) return false;
+    return peers.some((p) => !pcLive(p.peer_id) || !rtcAudioReady(p.peer_id));
+  };
 
   const pushMedia = async () => {
     if (state.pushing || !state.peerId || !cfg.pushUrl || state.leaving) return;
+    const needVideo = remotesNeedHttp() && (state.video || state.screen);
+    const needAudio = remotesNeedHttpAudio() && state.audio;
+    if (!needVideo && !needAudio) return;
     state.pushing = true;
     try {
-      const frame = (state.video || state.screen) ? await captureFrame() : null;
-      const audio = state.audio ? drainAudio() : null;
+      const frame = needVideo ? await captureFrame() : null;
+      const audio = needAudio ? drainAudio() : null;
       if (!frame && !audio) return;
       const fd = new FormData();
       if (csrf) fd.append('_csrf', csrf);
@@ -927,8 +1011,8 @@
     src.buffer = buf;
     src.connect(ctx.destination);
     const now = ctx.currentTime;
-    if (state.watchAudioAt < now + 0.04) state.watchAudioAt = now + 0.04;
-    if (state.watchAudioAt - now > 0.45) state.watchAudioAt = now + 0.04;
+    if (state.watchAudioAt < now + 0.02) state.watchAudioAt = now + 0.02;
+    if (state.watchAudioAt - now > 1.15) state.watchAudioAt = now + 0.02;
     src.start(state.watchAudioAt);
     state.watchAudioAt += buf.duration;
   };
@@ -936,8 +1020,8 @@
   const pullPeerMedia = async (peerId) => {
     if (!peerId || peerId === state.peerId || !cfg.frameUrl) return;
     const peer = (state.lastPeers || []).find((p) => p && p.peer_id === peerId);
-    const wantVideo = !peer || Number(peer.video_on) === 1 || Number(peer.screen_on) === 1 || Number(peer.has_frame) === 1;
-    const wantAudio = !!peer && Number(peer.audio_on) === 1 && !!cfg.audioUrl && state.wantSound;
+    const wantVideo = !rtcVideoReady(peerId) && (!peer || Number(peer.video_on) === 1 || Number(peer.screen_on) === 1 || Number(peer.has_frame) === 1);
+    const wantAudio = !rtcAudioReady(peerId) && !!peer && Number(peer.audio_on) === 1 && !!cfg.audioUrl && state.wantSound;
     try {
       const jobs = [];
       if (wantVideo) {
@@ -1008,23 +1092,41 @@
     }
   };
 
+  const httpDelay = () => (remotesNeedHttp() || remotesNeedHttpAudio() ? FRAME_MS : 700);
+
+  const armPush = () => {
+    if (state.leaving) return;
+    if (state.pushTimer) clearTimeout(state.pushTimer);
+    state.pushTimer = setTimeout(async () => {
+      await pushMedia();
+      armPush();
+    }, httpDelay());
+  };
+
+  const armPull = () => {
+    if (state.leaving) return;
+    if (state.pullTimer) clearTimeout(state.pullTimer);
+    state.pullTimer = setTimeout(async () => {
+      await pullMedia();
+      armPull();
+    }, httpDelay());
+  };
+
   const startRelay = () => {
     hookLocalAudio(state.localStream);
-    if (state.pushTimer) clearInterval(state.pushTimer);
-    state.pushTimer = setInterval(pushMedia, FRAME_MS);
+    armPush();
+    armPull();
     pushMedia();
-    if (state.pullTimer) clearInterval(state.pullTimer);
-    state.pullTimer = setInterval(pullMedia, FRAME_MS);
     pullMedia();
   };
 
   const stopRelay = () => {
     if (state.pushTimer) {
-      clearInterval(state.pushTimer);
+      clearTimeout(state.pushTimer);
       state.pushTimer = null;
     }
     if (state.pullTimer) {
-      clearInterval(state.pullTimer);
+      clearTimeout(state.pullTimer);
       state.pullTimer = null;
     }
     Object.keys(state.blobUrls).forEach((id) => {
@@ -1068,7 +1170,9 @@
 
   const pollDelay = () => {
     if (state.panel === 'chat') return 280;
-    return 320;
+    const peers = (state.lastPeers || []).filter((p) => p && p.peer_id !== state.peerId);
+    if (peers.length && peers.every((p) => pcLive(p.peer_id))) return 700;
+    return 280;
   };
 
   const armPoll = () => {
@@ -1162,8 +1266,8 @@
 
   const audioConstraints = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
   const videoConstraints = () => (isPhone()
-    ? { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
-    : { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } });
+    ? { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } }
+    : { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } });
 
   const showLobbyPreview = () => {
     const preview = document.getElementById('live-lobby-preview');
@@ -1322,6 +1426,7 @@
     state.wantSound = true;
     const ctx = ensureAudioContext();
     hookLocalAudio(state.localStream);
+    Object.keys(state.streams).forEach((id) => bindRemote(id));
     if (ctx && ctx.state !== 'suspended') showSoundBar(false);
   };
 
@@ -1465,6 +1570,76 @@
     }
     layoutGrid();
   };
+
+  const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+
+  const unlockOrientation = () => {
+    root.classList.remove('is-fs-rotate');
+    try {
+      if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+    } catch (_) {}
+  };
+
+  const lockLandscape = async () => {
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock('landscape');
+        root.classList.remove('is-fs-rotate');
+        return;
+      }
+    } catch (_) {}
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock('landscape-primary');
+        root.classList.remove('is-fs-rotate');
+        return;
+      }
+    } catch (_) {}
+    if (isPhone() && window.matchMedia('(orientation: portrait)').matches) {
+      root.classList.add('is-fs-rotate');
+    }
+  };
+
+  const enterClassFullscreen = async () => {
+    const el = root;
+    try {
+      if (el.requestFullscreen) {
+        try {
+          await el.requestFullscreen({ navigationUI: 'hide' });
+        } catch (_) {
+          await el.requestFullscreen();
+        }
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+      }
+      await lockLandscape();
+    } catch (_) {
+      if (isPhone()) root.classList.add('is-fs-rotate');
+    }
+  };
+
+  const exitClassFullscreen = async () => {
+    try {
+      if (fsElement() && document.exitFullscreen) await document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    } catch (_) {}
+    unlockOrientation();
+  };
+
+  const toggleClassFullscreen = () => {
+    if (fsElement()) exitClassFullscreen();
+    else enterClassFullscreen();
+  };
+
+  document.addEventListener('fullscreenchange', () => {
+    if (!fsElement()) unlockOrientation();
+    else lockLandscape();
+    layoutGrid();
+  });
+  document.addEventListener('webkitfullscreenchange', () => {
+    if (!fsElement()) unlockOrientation();
+    layoutGrid();
+  });
 
   const setCtl = (ctl, on) => {
     const btn = document.querySelector('[data-ctl="' + ctl + '"]');
@@ -1652,6 +1827,10 @@
       }).finally(() => {
         state.mediaBusy = false;
       });
+      return;
+    }
+    if (ctl === 'fs') {
+      toggleClassFullscreen();
       return;
     }
     if (ctl === 'screen') {

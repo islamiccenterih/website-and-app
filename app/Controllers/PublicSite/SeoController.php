@@ -34,6 +34,9 @@ final class SeoController extends Controller
             '/islamic-holidays',
             '/center-updates',
             '/live',
+            '/privacy-policy',
+            '/terms-and-conditions',
+            '/disclaimer',
         ];
         foreach (Course::published() as $course) {
             $urls[] = '/courses/' . $course['slug'];

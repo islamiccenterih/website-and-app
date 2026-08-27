@@ -77,4 +77,4 @@ $secure = !empty($secure);
         </aside>
     </div>
 </div>
-<script src="<?= e(asset('assets/js/public-live.js')) ?>?v=8"></script>
+<script src="<?= e(asset('assets/js/public-live.js')) ?>?v=9"></script>

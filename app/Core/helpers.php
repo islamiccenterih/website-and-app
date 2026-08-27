@@ -497,7 +497,7 @@ function visible_nav_items(array $items): array
 }
 
 /** @return list<array{label:string,url:string}> */
-function footer_required_catalog(): array
+function header_required_catalog(): array
 {
     return [
         ['label' => 'Qibla Direction', 'url' => '/qibla-direction'],
@@ -511,26 +511,54 @@ function footer_required_catalog(): array
 }
 
 /** @return list<array{label:string,url:string}> */
-function header_required_catalog(): array
+function footer_required_catalog(): array
 {
-    return footer_required_catalog();
+    return [
+        ['label' => 'Privacy Policy', 'url' => '/privacy-policy'],
+        ['label' => 'Terms & Conditions', 'url' => '/terms-and-conditions'],
+        ['label' => 'Disclaimer', 'url' => '/disclaimer'],
+    ];
+}
+
+/** @return list<string> */
+function footer_legacy_explore_urls(): array
+{
+    return [
+        '/',
+        '/about-us',
+        '/courses',
+        '/social-activities',
+        '/gallery',
+        '/contact-us',
+        '/moon-timing',
+        '/islamic-calendar',
+        '/qibla-direction',
+        '/zakat-calculator',
+        '/ramadan-mode',
+        '/fatawa',
+        '/islamic-holidays',
+        '/center-updates',
+        '/live',
+    ];
 }
 
 /** @return list<array{label:string,url:string,hidden:bool}> */
 function footer_links_all(): array
 {
-    return ensure_nav_links(link_list('footer_links', [
-        ['label' => 'Courses', 'url' => '/courses'],
-        ['label' => 'Social Activities', 'url' => '/social-activities'],
-        ['label' => 'Moon Timing', 'url' => '/moon-timing'],
-        ['label' => 'Contact Us', 'url' => '/contact-us'],
-        ['label' => 'Qibla Direction', 'url' => '/qibla-direction'],
-        ['label' => 'Zakat Calculator', 'url' => '/zakat-calculator'],
-        ['label' => 'Ramadan Mode', 'url' => '/ramadan-mode'],
-        ['label' => 'Fatawa', 'url' => '/fatawa'],
-        ['label' => 'Islamic Holidays', 'url' => '/islamic-holidays'],
-        ['label' => 'Center Updates', 'url' => '/center-updates'],
-    ]), footer_required_catalog());
+    $saved = link_list('footer_links', footer_required_catalog());
+    $legacy = [];
+    foreach (footer_legacy_explore_urls() as $url) {
+        $legacy[nav_item_path($url)] = true;
+    }
+    $kept = [];
+    foreach ($saved as $link) {
+        $path = nav_item_path((string) ($link['url'] ?? ''));
+        if (isset($legacy[$path])) {
+            continue;
+        }
+        $kept[] = $link;
+    }
+    return ensure_nav_links($kept, footer_required_catalog());
 }
 
 function footer_links(): array
@@ -627,6 +655,11 @@ function default_page_menu_labels(): array
         '/islamic-holidays' => 'Islamic Holidays',
         '/center-updates' => 'Center Updates',
         '/live' => 'Live',
+        '/privacy-policy' => 'Privacy Policy',
+        '/privacy' => 'Privacy Policy',
+        '/terms-and-conditions' => 'Terms & Conditions',
+        '/terms' => 'Terms & Conditions',
+        '/disclaimer' => 'Disclaimer',
     ];
 }
 

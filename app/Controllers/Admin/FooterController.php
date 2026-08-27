@@ -13,7 +13,7 @@ final class FooterController extends BaseController
         $this->screen('admin/footer/index', [
             'pageTitle' => 'Header & Footer — Admin',
             'nav' => $this->padded(header_nav_all(), 16),
-            'links' => $this->padded(footer_links_all(), 8),
+            'links' => $this->padded(footer_links_all(), 6),
         ]);
     }
 
@@ -25,7 +25,8 @@ final class FooterController extends BaseController
             'site_tagline' => faith_terms_store(trim((string) ($_POST['site_tagline'] ?? ''))),
             'footer_note' => faith_terms_store(trim((string) ($_POST['footer_note'] ?? ''))),
             'footer_visit_heading' => faith_terms_store(trim((string) ($_POST['footer_visit_heading'] ?? 'Visit'))),
-            'footer_explore_heading' => faith_terms_store(trim((string) ($_POST['footer_explore_heading'] ?? 'Explore'))),
+            'footer_legal_heading' => faith_terms_store(trim((string) ($_POST['footer_legal_heading'] ?? $_POST['footer_explore_heading'] ?? 'Legal'))),
+            'footer_explore_heading' => faith_terms_store(trim((string) ($_POST['footer_legal_heading'] ?? $_POST['footer_explore_heading'] ?? 'Legal'))),
             'footer_copyright' => trim((string) ($_POST['footer_copyright'] ?? '')),
             'footer_admin_prefix' => trim((string) ($_POST['footer_admin_prefix'] ?? 'Administration:')),
             'footer_admin_label' => trim((string) ($_POST['footer_admin_label'] ?? 'Admin login')),

@@ -22,6 +22,13 @@ $visibilityField = static function (string $name, array $link, int $i, string $k
     </div>
     <?php
 };
+$legalHeadingValue = trim((string) setting('footer_legal_heading', ''));
+if ($legalHeadingValue === '') {
+    $legalHeadingValue = trim((string) setting('footer_explore_heading', 'Legal'));
+}
+if ($legalHeadingValue === '' || strcasecmp($legalHeadingValue, 'Explore') === 0) {
+    $legalHeadingValue = 'Legal';
+}
 ?>
 <form class="form stack-form" method="post" action="<?= e(url('/admin/footer')) ?>">
     <?= csrf_field() ?>
@@ -46,16 +53,16 @@ $visibilityField = static function (string $name, array $link, int $i, string $k
     <div class="field"><label>Heading</label><input name="footer_visit_heading" value="<?= e((string) setting('footer_visit_heading', 'Visit')) ?>"></div>
     <p class="help">Address, email, and phone come from Pages → Contact Us.</p>
 
-    <h2>Footer — explore column</h2>
-    <div class="field"><label>Heading</label><input name="footer_explore_heading" value="<?= e((string) setting('footer_explore_heading', 'Explore')) ?>"></div>
+    <h2>Footer — legal column</h2>
+    <div class="field"><label>Heading</label><input name="footer_legal_heading" value="<?= e($legalHeadingValue) ?>"></div>
     <?php foreach ($links as $i => $link): ?>
         <div class="row-3<?= !empty($link['hidden']) ? ' is-nav-hidden' : '' ?>" data-nav-row>
-            <div class="field"><label>Link <?= $i + 1 ?> label</label><input name="link_label[]" dir="auto" value="<?= e((string) ($link['label'] ?? '')) ?>" placeholder="Courses"></div>
-            <div class="field"><label>Link <?= $i + 1 ?> URL</label><input name="link_url[]" value="<?= e((string) ($link['url'] ?? '')) ?>" placeholder="/courses"></div>
+            <div class="field"><label>Link <?= $i + 1 ?> label</label><input name="link_label[]" dir="auto" value="<?= e((string) ($link['label'] ?? '')) ?>" placeholder="Privacy Policy"></div>
+            <div class="field"><label>Link <?= $i + 1 ?> URL</label><input name="link_url[]" value="<?= e((string) ($link['url'] ?? '')) ?>" placeholder="/privacy-policy"></div>
             <?php $visibilityField('link_hidden[]', $link, $i, 'Link'); ?>
         </div>
     <?php endforeach; ?>
-    <p class="help">Use a path such as /courses or a full URL such as https://example.com. Empty rows are ignored. Hide a link to remove it from the footer Explore column; Show puts it back. Direct URLs still work.</p>
+    <p class="help">The footer shows Privacy Policy, Terms &amp; Conditions, and Disclaimer. Extra rows can be other legal or external links. Empty rows are ignored. Website pages such as Courses stay in the header, not in this column.</p>
 
     <h2>Footer — bottom bar</h2>
     <div class="field"><label>Copyright line</label><input name="footer_copyright" value="<?= e((string) setting('footer_copyright')) ?>" placeholder="© <?= date('Y') ?> <?= e(site_name()) ?>. All rights reserved."></div>
