@@ -28,18 +28,18 @@ final class ZakatService
 
         $stored = HttpJson::read(PUBLIC_PATH . '/assets/data/zakat-spot.json');
         $haveFallback = is_array($stored) && !empty($stored['gold_per_gram_inr']);
+        if ($haveFallback) {
+            $stored['ok'] = true;
+            $stored['stale'] = ($stored['for_date'] ?? '') !== $today;
+            $stored['error'] = null;
+            return $this->withConfig($stored, $cfg);
+        }
 
         try {
             $fresh = $this->fetchSpot($today);
             $this->persist($fresh);
             return $this->withConfig($fresh, $cfg);
         } catch (\Throwable) {
-            if ($haveFallback) {
-                $stored['ok'] = true;
-                $stored['stale'] = true;
-                $stored['error'] = null;
-                return $this->withConfig($stored, $cfg);
-            }
             return $this->withConfig([
                 'ok' => false,
                 'error' => 'Metal prices are temporarily unavailable. Try again in a moment.',

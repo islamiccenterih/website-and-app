@@ -42,7 +42,7 @@ $times = [
         ?>
     </div>
 </section>
-<section class="section section-sand">
+<section class="section section-sand" data-moon-live data-lat="27.1591" data-lng="78.3957" data-for-date="<?= e((string) ($moon['for_date'] ?? '')) ?>">
     <div class="container">
         <?php if (!empty($moon['error']) && empty($moon['ok'])): ?>
             <div class="alert alert-error"><?= e($moon['error']) ?></div>
@@ -61,7 +61,7 @@ $times = [
         ?>
 
         <?php if ($hijri): ?>
-            <p class="moon-hijri-line"><?= e($hijri['weekday_en'] ?? '') ?><?= !empty($hijri['month_ar']) ? ' · ' . e($hijri['month_ar']) : '' ?></p>
+            <p class="moon-hijri-line" data-moon-hijri-line><?= e($hijri['weekday_en'] ?? '') ?><?= !empty($hijri['month_ar']) ? ' · ' . e($hijri['month_ar']) : '' ?></p>
             <?php if (!empty($hijri['holidays'])): ?>
                 <div class="meta-row moon-holidays">
                     <?php foreach ((array) $hijri['holidays'] as $holiday): ?>
@@ -82,16 +82,16 @@ $times = [
                     require APP_PATH . '/Views/components/moon-orb.php';
                     ?>
                     <p class="arabic-mark moon-ar"><?= e(is_array($hijri) ? ($hijri['weekday_ar'] ?? 'قمر') : 'قمر') ?></p>
-                    <h3><?= e($phase) ?></h3>
+                    <h3 data-moon-phase><?= e($phase) ?></h3>
                     <?php if ($illumLabel): ?>
-                        <p><?= e($illumLabel) ?></p>
+                        <p data-moon-illum><?= e($illumLabel) ?></p>
                     <?php endif; ?>
                 </div>
                 <div class="moon-stage-times">
                     <?php foreach ($times as [$label, $value]): ?>
                         <div>
                             <span><?= e($label) ?></span>
-                            <strong><?= e($value) ?></strong>
+                            <strong data-moon-sky="<?= e(strtolower(str_replace(' ', '', $label))) ?>"><?= e($value) ?></strong>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -129,7 +129,7 @@ $times = [
                         require APP_PATH . '/Views/components/moon-orb.php';
                         ?>
                         <strong><?= e((string) ($day['daynum'] ?? '')) ?></strong>
-                        <span class="moon-week-phase"><?= e((string) ($day['phase'] ?? '')) ?></span>
+                        <span class="moon-week-phase" data-moon-week-phase><?= e((string) ($day['phase'] ?? '')) ?></span>
                     </article>
                 <?php endforeach; ?>
             </div>
@@ -143,23 +143,4 @@ $times = [
         <?php endif; ?>
     </div>
 </section>
-<script>
-(function () {
-    var stage = document.querySelector('[data-moon-date]');
-    if (!stage) return;
-    var pageDate = stage.getAttribute('data-moon-date');
-    if (!pageDate) return;
-    var tick = function () {
-        var today = new Intl.DateTimeFormat('en-CA', {
-            timeZone: 'Asia/Kolkata',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        }).format(new Date());
-        if (today !== pageDate) {
-            window.location.reload();
-        }
-    };
-    setInterval(tick, 60000);
-})();
-</script>
+<script src="<?= e(asset('assets/js/moon-live.js')) ?>?v=1" defer></script>

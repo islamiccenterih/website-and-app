@@ -215,11 +215,20 @@
   };
 
   const load = (city) => {
-    const api = root.getAttribute('data-api') || '/api/ramadan';
-    const params = new URLSearchParams({ city: city.name, state: city.state || '' });
-    return fetch(api + (api.includes('?') ? '&' : '?') + params.toString(), { headers: { Accept: 'application/json' } })
-      .then((res) => res.json())
-      .then(paint);
+    const localApi = () => {
+      const api = root.getAttribute('data-api') || '/api/ramadan';
+      const params = new URLSearchParams({ city: city.name, state: city.state || '' });
+      return fetch(api + (api.includes('?') ? '&' : '?') + params.toString(), { headers: { Accept: 'application/json' } })
+        .then((res) => res.json())
+        .then(paint);
+    };
+    if (window.ICLive && typeof ICLive.ramadanPage === 'function') {
+      return ICLive.ramadanPage(city.name, city.state).then((data) => {
+        data.duas = data.duas || (page && page.duas);
+        paint(data);
+      }).catch(localApi);
+    }
+    return localApi();
   };
 
   const selectCity = (city) => {

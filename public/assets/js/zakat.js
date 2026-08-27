@@ -61,12 +61,64 @@
     lines.appendChild(total);
   };
 
-    const calculate = () => {
+  let liveSpot = null;
+  const goldG = Number(root.getAttribute('data-gold-nisab-g') || 87.48);
+  const silverG = Number(root.getAttribute('data-silver-nisab-g') || 612.36);
+  const rate = Number(root.getAttribute('data-zakat-rate') || 2.5);
+  const method = root.getAttribute('data-nisab-method') || 'lower';
+
+  const money = (value) => {
+    const n = parseFloat(String(value || '0').replace(/[,₹\s]/g, '')) || 0;
+    return n < 0 ? 0 : n;
+  };
+
+  const calcLocal = (spot, input) => {
+    const goldValue = money(input.gold_grams) * (Math.min(24, Math.max(9, money(input.gold_karat) || 24)) / 24) * (spot.gold_per_gram_inr || 0);
+    const silverValue = money(input.silver_grams) * (spot.silver_per_gram_inr || 0);
+    const cash = money(input.cash) + money(input.bank) + money(input.business) + money(input.receivables) + money(input.investments) + money(input.crypto) + money(input.other);
+    const debts = money(input.debts);
+    const assets = goldValue + silverValue + cash;
+    const net = Math.max(0, assets - debts);
+    const goldNisab = spot.gold_nisab_inr || 0;
+    const silverNisab = spot.silver_nisab_inr || 0;
+    const nisab = method === 'gold' ? goldNisab : (method === 'silver' ? silverNisab : Math.min(goldNisab, silverNisab) || Math.max(goldNisab, silverNisab));
+    const due = net >= nisab && nisab > 0;
+    const zakat = due ? Math.round(net * (rate / 100) * 100) / 100 : 0;
+    return {
+      ok: true,
+      assets,
+      debts,
+      net,
+      nisab,
+      above_nisab: due,
+      rate,
+      zakat,
+      lines: [
+        { label: 'Gold', amount: goldValue },
+        { label: 'Silver', amount: silverValue },
+        { label: 'Cash in hand', amount: money(input.cash) },
+        { label: 'Bank and savings', amount: money(input.bank) },
+        { label: 'Business stock', amount: money(input.business) },
+        { label: 'Money owed to you', amount: money(input.receivables) },
+        { label: 'Shares and funds', amount: money(input.investments) },
+        { label: 'Crypto and digital', amount: money(input.crypto) },
+        { label: 'Other zakatable wealth', amount: money(input.other) },
+        { label: 'Debts due now', amount: -debts },
+      ],
+    };
+  };
+
+  const calculate = () => {
+    const input = payload();
+    if (liveSpot && liveSpot.ok) {
+      paintCalc(calcLocal(liveSpot, input));
+      return Promise.resolve();
+    }
     const calcUrl = root.getAttribute('data-calc-url') || '/api/zakat/calculate';
     return fetch(calcUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(payload()),
+      body: JSON.stringify(input),
     }).then((res) => res.json()).then(paintCalc);
   };
 
@@ -80,22 +132,25 @@
   });
 
   const nisabUrl = root.getAttribute('data-nisab-url') || '/api/zakat/nisab';
-  const loadNisab = () => fetch(nisabUrl, { headers: { Accept: 'application/json' } })
-    .then((res) => res.json())
-    .then(paintNisab)
-    .catch(() => {});
+  const loadNisab = () => {
+    const apply = (spot) => {
+      if (spot && spot.ok) liveSpot = spot;
+      paintNisab(spot);
+      if (form && [...form.querySelectorAll('input,select')].some((el) => el.value)) {
+        calculate();
+      }
+    };
+    const localApi = () => fetch(nisabUrl, { headers: { Accept: 'application/json' } })
+      .then((res) => res.json())
+      .then(apply);
+    if (window.ICLive && typeof ICLive.metalSpot === 'function') {
+      return ICLive.metalSpot({ gold_nisab_g: goldG, silver_nisab_g: silverG, rate, nisab_method: method })
+        .then(apply)
+        .catch(localApi);
+    }
+    return localApi().catch(() => {});
+  };
 
   loadNisab();
-  setInterval(() => {
-    const shown = (root.querySelector('[data-spot-date]')?.textContent || '').trim();
-    const today = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(new Date());
-    if (shown && shown !== today) {
-      loadNisab();
-    }
-  }, 60000);
+  setInterval(loadNisab, 60000);
 })();

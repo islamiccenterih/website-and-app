@@ -57,7 +57,7 @@
     root.setAttribute('data-date', data.for_date || '');
     if (label) label.textContent = (data.city || '') + (data.state ? ', ' + data.state : '');
     if (meta) {
-      meta.textContent = [data.weekday, data.date, 'Live for India'].filter(Boolean).join(' · ');
+      meta.textContent = [data.weekday, data.date, data.live ? 'Live AlAdhan' : 'Live for India'].filter(Boolean).join(' · ');
     }
     if (errorBox) {
       if (!data.ok && data.error) {
@@ -131,14 +131,21 @@
   };
 
   const loadTimes = (city) => {
-    const api = root.getAttribute('data-api') || '/api/prayer-times';
-    const params = new URLSearchParams({ city: city.name, state: city.state || '' });
-    return fetch(api + (api.includes('?') ? '&' : '?') + params.toString(), { headers: { Accept: 'application/json' } })
-      .then((res) => res.json())
-      .then((data) => {
-        paint(data);
-        return data;
-      });
+    const apply = (data) => {
+      paint(data);
+      return data;
+    };
+    const localApi = () => {
+      const api = root.getAttribute('data-api') || '/api/prayer-times';
+      const params = new URLSearchParams({ city: city.name, state: city.state || '' });
+      return fetch(api + (api.includes('?') ? '&' : '?') + params.toString(), { headers: { Accept: 'application/json' } })
+        .then((res) => res.json())
+        .then(apply);
+    };
+    if (window.ICLive && typeof ICLive.prayerTimes === 'function') {
+      return ICLive.prayerTimes(city.name, city.state).then(apply).catch(localApi);
+    }
+    return localApi();
   };
 
   const selectCity = (city) => {
@@ -197,5 +204,5 @@
       return;
     }
     markNow();
-  }, 15000);
+  }, 1000);
 })();

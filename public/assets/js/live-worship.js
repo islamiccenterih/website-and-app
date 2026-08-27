@@ -1,0 +1,288 @@
+window.ICLive = (() => {
+  const TROY = 31.1034768;
+
+  const istStamp = (type) => {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).formatToParts(new Date());
+    const read = (name) => (parts.find((part) => part.type === name) || {}).value || '';
+    if (type === 'dmy') return read('day') + '-' + read('month') + '-' + read('year');
+    return read('year') + '-' + read('month') + '-' + read('day');
+  };
+
+  const getJson = (url, ms) => {
+    const ctrl = new AbortController();
+    const timer = window.setTimeout(() => ctrl.abort(), ms || 8000);
+    return fetch(url, { signal: ctrl.signal, headers: { Accept: 'application/json' } })
+      .then((res) => {
+        if (!res.ok) throw new Error('Upstream HTTP ' + res.status);
+        return res.json();
+      })
+      .finally(() => window.clearTimeout(timer));
+  };
+
+  const to12 = (raw) => {
+    const stamp = String(raw || '').trim().split(' ')[0] || '';
+    const m = stamp.match(/^(\d{1,2}):(\d{2})/);
+    if (!m) return String(raw || '').trim();
+    let hour = parseInt(m[1], 10);
+    const minute = m[2];
+    const suffix = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour === 0) hour = 12;
+    return hour + ':' + minute + ' ' + suffix;
+  };
+
+  const gregIso = (g) => {
+    const day = parseInt(g && (g.day || g.date), 10);
+    const month = parseInt((g && g.month && (g.month.number || g.month)) || 0, 10);
+    const year = parseInt(g && g.year, 10);
+    if (g && g.date && /^\d{2}-\d{2}-\d{4}$/.test(g.date)) {
+      const p = g.date.split('-');
+      return p[2] + '-' + p[1] + '-' + p[0];
+    }
+    if (!year || !month || !day) return '';
+    return year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+  };
+
+  const prayerFromAladhan = (payload, city, state) => {
+    const times = (payload && payload.data && payload.data.timings) || {};
+    const meta = (payload && payload.data && payload.data.date) || {};
+    const g = meta.gregorian || {};
+    const iso = gregIso(g) || istStamp('iso');
+    const weekday = (g.weekday && g.weekday.en) || '';
+    return {
+      ok: true,
+      error: null,
+      live: true,
+      source: 'aladhan',
+      city,
+      state,
+      date: meta.readable || '',
+      weekday,
+      for_date: iso,
+      timezone: 'Asia/Kolkata',
+      prayers: [
+        { key: 'fajr', name: 'Fajr', time: to12(times.Fajr) },
+        { key: 'zuhr', name: 'Zuhr', time: to12(times.Dhuhr) },
+        { key: 'asr', name: 'Asr', time: to12(times.Asr) },
+        { key: 'maghrib', name: 'Maghrib', time: to12(times.Maghrib) },
+        { key: 'isha', name: 'Isha', time: to12(times.Isha) },
+        { key: 'jummah', name: 'Jummah', time: to12(times.Dhuhr) },
+      ],
+      sunrise: to12(times.Sunrise),
+      imsak: to12(times.Imsak),
+      fajr: to12(times.Fajr),
+      maghrib: to12(times.Maghrib),
+      isha: to12(times.Isha),
+    };
+  };
+
+  const prayerTimes = (city, state) => {
+    const q = new URLSearchParams({
+      city: city || 'Firozabad',
+      country: 'India',
+      method: '1',
+      school: '1',
+    });
+    if (state) q.set('state', state);
+    return getJson('https://api.aladhan.com/v1/timingsByCity/' + istStamp('dmy') + '?' + q.toString(), 8000)
+      .then((payload) => {
+        if ((payload.code || 0) !== 200 || !payload.data || !payload.data.timings) {
+          throw new Error('Empty prayer times');
+        }
+        return prayerFromAladhan(payload, city, state);
+      });
+  };
+
+  const hijriToday = () => getJson('https://api.aladhan.com/v1/gToH?date=' + istStamp('dmy'), 8000)
+    .then((payload) => {
+      const h = payload.data && payload.data.hijri ? payload.data.hijri : {};
+      const g = payload.data && payload.data.gregorian ? payload.data.gregorian : {};
+      if (!h.year) throw new Error('Empty hijri');
+      const month = h.month || {};
+      return {
+        day: parseInt(h.day, 10) || 0,
+        month: parseInt(month.number, 10) || 0,
+        year: parseInt(h.year, 10) || 0,
+        month_en: month.en || '',
+        month_ar: month.ar || '',
+        weekday: (h.weekday && h.weekday.en) || '',
+        weekday_ar: (h.weekday && h.weekday.ar) || '',
+        holidays: Array.isArray(h.holidays) ? h.holidays : [],
+        gregorian_iso: gregIso(g) || istStamp('iso'),
+        gregorian_label: [g.weekday && g.weekday.en, (g.day || '') + ' ' + ((g.month && g.month.en) || '') + ' ' + (g.year || '')].filter(Boolean).join(', '),
+      };
+    });
+
+  const ramadanPage = (city, state) => hijriToday().then((today) => {
+    const hy = today.month <= 9 ? today.year : today.year + 1;
+    const q = new URLSearchParams({
+      city: city || 'Firozabad',
+      country: 'India',
+      method: '1',
+      school: '1',
+    });
+    if (state) q.set('state', state);
+    return getJson('https://api.aladhan.com/v1/hijriCalendarByCity/' + hy + '/9?' + q.toString(), 12000)
+      .then((payload) => {
+        const rows = Array.isArray(payload.data) ? payload.data : [];
+        if (!rows.length) throw new Error('Empty ramadan');
+        const days = rows.map((item) => {
+          const timings = item.timings || {};
+          const date = item.date || {};
+          const hijri = date.hijri || {};
+          const greg = date.gregorian || {};
+          const iso = gregIso(greg);
+          return {
+            hijri_day: parseInt(hijri.day, 10) || 0,
+            hijri_label: (hijri.day || '') + ' Ramadan ' + hy,
+            gregorian_iso: iso,
+            gregorian_label: date.readable || '',
+            weekday: (greg.weekday && greg.weekday.en) || '',
+            imsak: to12(timings.Imsak),
+            fajr: to12(timings.Fajr),
+            maghrib: to12(timings.Maghrib),
+            isha: to12(timings.Isha),
+            is_today: iso === today.gregorian_iso,
+          };
+        });
+        const todayRow = days.find((day) => day.is_today) || {
+          hijri_day: today.day,
+          hijri_label: today.day + ' ' + today.month_en + ' ' + today.year,
+          gregorian_iso: today.gregorian_iso,
+          gregorian_label: today.gregorian_label,
+          imsak: '',
+          fajr: '',
+          maghrib: '',
+          isha: '',
+          is_today: true,
+          ok: true,
+        };
+        const isRamadan = today.month === 9 && today.year === hy;
+        if (!todayRow.fajr) {
+          return prayerTimes(city, state).then((prayer) => {
+            todayRow.imsak = prayer.imsak;
+            todayRow.fajr = prayer.fajr;
+            todayRow.maghrib = prayer.maghrib;
+            todayRow.isha = prayer.isha;
+            todayRow.ok = true;
+            return finishRamadan(city, state, hy, isRamadan, today, todayRow, days);
+          });
+        }
+        todayRow.ok = true;
+        return finishRamadan(city, state, hy, isRamadan, today, todayRow, days);
+      });
+  });
+
+  const finishRamadan = (city, state, hy, isRamadan, today, todayRow, days) => {
+    const first = days[0] || {};
+    return {
+      ok: true,
+      error: null,
+      live: true,
+      source: 'aladhan',
+      city,
+      state,
+      hijri_year: hy,
+      is_ramadan: isRamadan,
+      today,
+      today_row: todayRow,
+      days,
+      gregorian_span: first.gregorian_label && days[days.length - 1]
+        ? first.gregorian_label + ' – ' + days[days.length - 1].gregorian_label
+        : '',
+      next_ramadan_label: isRamadan
+        ? 'Ramadan ' + hy + ' AH is here — day ' + today.day + '.'
+        : (first.gregorian_label ? 'Ramadan ' + hy + ' AH begins ' + first.gregorian_label : ''),
+      ramadan_start: {
+        gregorian_iso: first.gregorian_iso || '',
+        gregorian_label: first.gregorian_label || '',
+        unix: first.gregorian_iso ? Date.parse(first.gregorian_iso + 'T00:00:00+05:30') / 1000 : 0,
+      },
+    };
+  };
+
+  const metalSpot = (cfg) => {
+    const goldG = Number((cfg && cfg.gold_nisab_g) || 87.48);
+    const silverG = Number((cfg && cfg.silver_nisab_g) || 612.36);
+    const rate = Number((cfg && cfg.rate) || 2.5);
+    const method = (cfg && cfg.nisab_method) || 'lower';
+    return Promise.all([
+      getJson('https://api.gold-api.com/price/XAU', 8000),
+      getJson('https://api.gold-api.com/price/XAG', 8000),
+      getJson('https://api.frankfurter.app/latest?from=USD&to=INR', 8000),
+    ]).then(([gold, silver, fx]) => {
+      const goldOz = Number(gold && gold.price) || 0;
+      const silverOz = Number(silver && silver.price) || 0;
+      const usdInr = Number(fx && fx.rates && fx.rates.INR) || 0;
+      if (goldOz <= 0 || silverOz <= 0 || usdInr <= 0) throw new Error('Incomplete metals');
+      const goldPerG = (goldOz / TROY) * usdInr;
+      const silverPerG = (silverOz / TROY) * usdInr;
+      const goldNisab = goldG * goldPerG;
+      const silverNisab = silverG * silverPerG;
+      const nisab = method === 'gold' ? goldNisab : (method === 'silver' ? silverNisab : Math.min(goldNisab, silverNisab) || Math.max(goldNisab, silverNisab));
+      return {
+        ok: true,
+        error: null,
+        stale: false,
+        live: true,
+        source: 'gold-api.com + frankfurter.app',
+        for_date: istStamp('iso'),
+        gold_per_gram_inr: goldPerG,
+        silver_per_gram_inr: silverPerG,
+        gold_nisab_g: goldG,
+        silver_nisab_g: silverG,
+        gold_nisab_inr: goldNisab,
+        silver_nisab_inr: silverNisab,
+        gold_per_10g_inr: goldPerG * 10,
+        silver_per_kg_inr: silverPerG * 1000,
+        usd_inr: usdInr,
+        rate,
+        nisab_method: method,
+        nisab,
+      };
+    });
+  };
+
+  const moonWeek = (lat, lng) => {
+    const start = istStamp('iso');
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 6);
+    const end = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(endDate);
+    const skyUrl = 'https://api.sunrisesunset.io/json?lat=' + encodeURIComponent(lat)
+      + '&lng=' + encodeURIComponent(lng)
+      + '&timezone=' + encodeURIComponent('Asia/Kolkata')
+      + '&date_start=' + start + '&date_end=' + end;
+    return Promise.all([hijriToday(), getJson(skyUrl, 8000)]).then(([hijri, sky]) => {
+      let rows = sky && sky.results;
+      if (rows && !Array.isArray(rows) && rows.sunrise) rows = [rows];
+      if (!Array.isArray(rows) || !rows.length) throw new Error('Empty moon');
+      const week = rows.map((row) => {
+        const illumRaw = Number(row.moon_illumination);
+        const illum = illumRaw <= 1 ? illumRaw * 100 : illumRaw;
+        return {
+          date: row.date,
+          label: row.date ? new Date(row.date + 'T12:00:00+05:30').toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'Asia/Kolkata' }) : '',
+          daynum: row.date ? String(parseInt(row.date.slice(-2), 10)) : '',
+          is_today: row.date === start,
+          phase: row.moon_phase || '',
+          illumination: illum,
+          phase_value: row.moon_phase_value,
+          moonrise: row.moonrise,
+          moonset: row.moonset,
+          sunrise: row.sunrise,
+          sunset: row.sunset,
+          golden_hour: row.golden_hour,
+        };
+      });
+      const todaySky = week.find((row) => row.is_today) || week[0];
+      return { ok: true, live: true, hijri, week, moon: todaySky, gregorian: hijri.gregorian_label, for_date: start };
+    });
+  };
+
+  return { prayerTimes, hijriToday, ramadanPage, metalSpot, moonWeek, istStamp, to12 };
+})();

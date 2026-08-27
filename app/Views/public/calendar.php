@@ -28,7 +28,7 @@ $centerMonths = is_array($months ?? null) ? $months : [];
     <div class="container">
         <p class="hijri-today">
             <span>Today</span>
-            <strong><?= e((string) ($cal['today_label'] ?? '')) ?></strong>
+            <strong data-hijri-today-label><?= e((string) ($cal['today_label'] ?? '')) ?></strong>
         </p>
 
         <?php if (!empty($cal['error']) && empty($cal['ok'])): ?>
@@ -205,3 +205,4 @@ $centerMonths = is_array($months ?? null) ? $months : [];
         <?php endif; ?>
     </div>
 </section>
+<script src="<?= e(asset('assets/js/calendar-live.js')) ?>?v=1" defer></script>

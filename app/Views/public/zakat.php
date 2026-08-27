@@ -20,7 +20,11 @@ $fmt = static function (float $n): string {
 <section class="section section-sand">
     <div class="container zakat-page" data-zakat-root
         data-nisab-url="<?= e(url('/api/zakat/nisab')) ?>"
-        data-calc-url="<?= e(url('/api/zakat/calculate')) ?>">
+        data-calc-url="<?= e(url('/api/zakat/calculate')) ?>"
+        data-gold-nisab-g="<?= e((string) ($spot['gold_nisab_g'] ?? '87.48')) ?>"
+        data-silver-nisab-g="<?= e((string) ($spot['silver_nisab_g'] ?? '612.36')) ?>"
+        data-zakat-rate="<?= e((string) ($spot['rate'] ?? '2.5')) ?>"
+        data-nisab-method="<?= e((string) ($spot['nisab_method'] ?? 'lower')) ?>">
         <div class="zakat-nisab">
             <article>
                 <span><?= e(ft('Gold nisab')) ?> (<?= e((string) ($spot['gold_nisab_g'] ?? '87.48')) ?> g · 7.5 tola)</span>
@@ -79,4 +83,4 @@ $fmt = static function (float $n): string {
         </aside>
     </div>
 </section>
-<script src="<?= e(asset('assets/js/zakat.js')) ?>?v=2" defer></script>
+<script src="<?= e(asset('assets/js/zakat.js')) ?>?v=3" defer></script>
