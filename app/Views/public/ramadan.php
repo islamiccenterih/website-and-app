@@ -187,7 +187,7 @@ $countSecs = $countSec % 60;
             <div class="dua-grid">
                 <?php foreach ($duas as $dua): ?>
                     <article class="dua-card">
-                        <h3><?= e(ft((string) $dua['title'])) ?></h3>
+                        <h3><?= e(cms((string) $dua['title'])) ?></h3>
                         <p class="dua-ar" lang="ar" dir="rtl"><?= e((string) $dua['arabic']) ?></p>
                         <p class="dua-tr"><?= e((string) $dua['translit']) ?></p>
                         <p><?= e((string) $dua['meaning']) ?></p>

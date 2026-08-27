@@ -32,7 +32,7 @@ $todayStamp = $today ? strtotime((string) $today['issued_on']) : false;
                     <?php endif; ?>
                 </div>
                 <div class="fatwa-feature-body" lang="<?= e($todayFirst['lang']) ?>" dir="<?= e($todayFirst['dir']) ?>">
-                    <h2><?= e(ft($todayFirst['title'] !== '' ? $todayFirst['title'] : tt('Today’s fatwa'))) ?></h2>
+                    <h2><?= e(cms($todayFirst['title'] !== '' ? $todayFirst['title'] : tt('Today’s fatwa'))) ?></h2>
                     <?php if ($todayFirst['body'] !== ''): ?>
                         <p><?= e(\App\Models\Fatwa::excerpt($today, 280)) ?></p>
                     <?php endif; ?>
@@ -85,7 +85,7 @@ $todayStamp = $today ? strtotime((string) $today['issued_on']) : false;
                             <?php endif; ?>
                         </div>
                         <div class="fatwa-item-copy"<?php if ($first): ?> lang="<?= e($first['lang']) ?>" dir="<?= e($first['dir']) ?>"<?php endif; ?>>
-                            <h3><?= e(ft(\App\Models\Fatwa::cardTitle($row))) ?></h3>
+                            <h3><?= e(cms(\App\Models\Fatwa::cardTitle($row))) ?></h3>
                             <?php if ($excerpt !== ''): ?>
                                 <p><?= e($excerpt) ?></p>
                             <?php endif; ?>

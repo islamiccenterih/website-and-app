@@ -5,14 +5,8 @@ declare(strict_types=1);
 namespace App\I18n;
 
 /**
- * English-site Islamic terms: Arabic or Urdu, with the English in brackets.
- *
- * On while setting faith_terms is not "0".
- * Public English pages use ft(). Stored content (course titles, activity copy, and
- * the same fields in admin lists / student course text) uses ftc(). Admin and
- * student chrome — menus, buttons, labels — stay English (tt() does not apply this).
- * Turn off (Admin → Settings, or ask “Back to English” / “convert in English again”
- * / “pura English”) and every current and future page shows plain English again.
+ * Optional wrappers for fixed English phrases in templates (ft()).
+ * Admin-typed content is stored and shown exactly after ContentTerms::bake().
  */
 final class FaithTerms
 {

@@ -30,6 +30,11 @@ function is_public_website(): bool
     return true;
 }
 
+function cms(?string $text): string
+{
+    return \App\I18n\Lang::text((string) $text);
+}
+
 function faith_terms_enabled(): bool
 {
     $raw = setting('faith_terms', '1');
@@ -51,21 +56,17 @@ function ft(?string $text): string
 }
 
 /**
- * Arabic / Urdu terms on stored English content (titles, descriptions, menus).
- * Same form on the public English website and in admin content fields.
+ * Stored CMS text is shown as saved. Use ft() only for fixed English phrases
+ * in templates. cms() translates stored text for Hindi / Urdu / Arabic.
  */
 function ftc(?string $text): string
 {
-    $text = (string) $text;
-    if ($text === '' || !faith_terms_enabled()) {
-        return $text;
-    }
-    return \App\I18n\FaithTerms::apply($text);
+    return (string) $text;
 }
 
 function faith_terms_store(?string $text): string
 {
-    return \App\I18n\FaithTerms::toStoredEnglish((string) $text);
+    return (string) $text;
 }
 
 function skip_public_copy_key(string $key): bool
@@ -399,21 +400,25 @@ function money_display(?string $value): string
     return $value === '' ? 'To be announced' : $value;
 }
 
+function setting_cache_clear(): void
+{
+    $GLOBALS['ic_settings'] = null;
+}
+
 function setting(string $key, mixed $default = null): mixed
 {
-    static $cache = null;
-    if ($cache === null) {
+    if (!isset($GLOBALS['ic_settings']) || !is_array($GLOBALS['ic_settings'])) {
+        $GLOBALS['ic_settings'] = [];
         try {
             $rows = App\Core\Database::get()->fetchAll('SELECT setting_key, setting_value FROM settings');
-            $cache = [];
             foreach ($rows as $row) {
-                $cache[$row['setting_key']] = $row['setting_value'];
+                $GLOBALS['ic_settings'][$row['setting_key']] = $row['setting_value'];
             }
         } catch (Throwable) {
-            $cache = [];
+            $GLOBALS['ic_settings'] = [];
         }
     }
-    return $cache[$key] ?? $default;
+    return $GLOBALS['ic_settings'][$key] ?? $default;
 }
 
 function site_name(): string
@@ -435,7 +440,7 @@ function page_copy(string $page, string $field, string $default = ''): string
 {
     $all = json_setting('page_copy');
     $value = trim((string) ($all[$page][$field] ?? ''));
-    return tt($value !== '' ? $value : $default);
+    return cms($value !== '' ? $value : $default);
 }
 
 /**
@@ -488,7 +493,7 @@ function visible_nav_items(array $items): array
             continue;
         }
         $out[] = [
-            'label' => tt((string) ($item['label'] ?? '')),
+            'label' => cms((string) ($item['label'] ?? '')),
             'url' => (string) ($item['url'] ?? ''),
         ];
     }
@@ -666,17 +671,10 @@ function default_page_menu_labels(): array
 function repair_nav_label(string $url, string $label): string
 {
     $label = trim($label);
-    $default = default_page_menu_labels()[nav_item_path($url)] ?? '';
-    if ($default === '') {
+    if ($label !== '') {
         return $label;
     }
-    if ($label === '') {
-        return $default;
-    }
-    if ($label !== $default && str_starts_with($default, $label) && mb_strlen($label) < mb_strlen($default)) {
-        return $default;
-    }
-    return $label;
+    return default_page_menu_labels()[nav_item_path($url)] ?? '';
 }
 
 /**

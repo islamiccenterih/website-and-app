@@ -34,7 +34,7 @@ $backUrl = url('/center-updates');
 
         <article class="update-read">
             <div class="update-body">
-                <?= $body !== '' ? ft($body) : '<p>' . e(tt('This update has no text yet')) . '</p>' ?>
+                <?= $body !== '' ? $body : '<p>' . e(tt('This update has no text yet')) . '</p>' ?>
             </div>
         </article>
 
@@ -46,7 +46,7 @@ $backUrl = url('/center-updates');
                         <li>
                             <a href="<?= e(url('/center-updates/' . $row['slug'])) ?>">
                                 <time><?= e(date('j M Y', strtotime((string) $row['published_on']))) ?></time>
-                                <strong><?= e(ft((string) $row['title'])) ?></strong>
+                                <strong><?= e(cms((string) $row['title'])) ?></strong>
                             </a>
                         </li>
                     <?php endforeach; ?>

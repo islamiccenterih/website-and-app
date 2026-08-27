@@ -5,7 +5,7 @@
     <div class="field"><label>Tagline</label><input name="site_tagline" value="<?= e((string) setting('site_tagline')) ?>"></div>
     <div class="field">
         <label>Arabic and Urdu terms on the English website</label>
-        <label class="help"><input type="hidden" name="faith_terms" value="0"><input type="checkbox" name="faith_terms" value="1"<?= faith_terms_enabled() ? ' checked' : '' ?>> On the English public website, show Islamic words in Arabic or Urdu with English in brackets. Pages, courses, and activities in this panel show that same text so you can edit it. Untick for plain English on the public site too.</label>
+        <label class="help"><input type="hidden" name="faith_terms" value="0"><input type="checkbox" name="faith_terms" value="1"<?= faith_terms_enabled() ? ' checked' : '' ?>> Wrap fixed English phrases on the public site (for example Sehri or Iftar in Ramadan tools). Text you type in Pages, courses, menus, and the footer is saved exactly — this switch does not rewrite it.</label>
     </div>
     <div class="field"><label>Footer note</label><textarea name="footer_note" rows="3"><?= e((string) setting('footer_note')) ?></textarea></div>
     <p class="help">Rename public pages under <a href="<?= e(url('/admin/pages')) ?>">Pages</a>.</p>

@@ -30,7 +30,7 @@
             <?php if ($activity['event_year']): ?><span class="pill"><?= e($activity['event_year']) ?></span><?php endif; ?>
         </div>
         <div class="prose">
-            <?= ft($bodyHtml ?: '') ?: '<p>A full description will appear here once it is entered in the Admin Panel.</p>' ?>
+            <?= $bodyHtml ?: '<p>A full description will appear here once it is entered in the Admin Panel.</p>' ?>
         </div>
         <?php if ($images): ?>
             <h2 style="margin-top:2rem"><?= e(page_copy('activities', 'images_heading', 'Photographs')) ?></h2>

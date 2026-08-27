@@ -16,13 +16,16 @@ final class Setting extends Model
                 'setting_value' => $value,
                 'updated_at' => date('Y-m-d H:i:s'),
             ], 'setting_key = ?', [$key]);
-            return;
+        } else {
+            static::db()->insert('settings', [
+                'setting_key' => $key,
+                'setting_value' => $value,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
         }
-        static::db()->insert('settings', [
-            'setting_key' => $key,
-            'setting_value' => $value,
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
+        if (isset($GLOBALS['ic_settings']) && is_array($GLOBALS['ic_settings'])) {
+            $GLOBALS['ic_settings'][$key] = $value;
+        }
     }
 
     public static function putMany(array $pairs): void

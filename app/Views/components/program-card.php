@@ -18,5 +18,5 @@ $icons = [
 ?>
 <a class="service-card" href="<?= e($href) ?>">
     <span class="service-icon"><?= $icons[$key] ?></span>
-    <h3><?= e(ft($program['title'])) ?></h3>
+    <h3><?= e(cms($program['title'])) ?></h3>
 </a>

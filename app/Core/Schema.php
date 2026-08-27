@@ -393,6 +393,9 @@ final class Schema
                 'ALTER TABLE `settings` MODIFY `setting_value` MEDIUMTEXT'
             );
         });
+        self::once('content-terms-bake-v1.ok', static function (): void {
+            \App\Services\ContentTerms::bake();
+        });
     }
 
     private static function once(string $flagName, callable $work): void

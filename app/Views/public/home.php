@@ -70,12 +70,12 @@ $pillars = [
                 </div>
             </div>
         <?php endif; ?>
-        <p class="arabic-mark"><?= e(ft($heroExtra['arabic'] ?? 'بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ')) ?></p>
-        <p class="hero-kicker"><?= e(ft($hero['subtitle'] ?? 'Islamic Center Information Hub')) ?></p>
-        <h1><?= e(ft($hero['title'] ?? 'Where Faith Guides Learning, and Learning Inspires Purpose')) ?></h1>
+        <p class="arabic-mark"><?= e(cms($heroExtra['arabic'] ?? 'بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ')) ?></p>
+        <p class="hero-kicker"><?= e(cms($hero['subtitle'] ?? 'Islamic Center Information Hub')) ?></p>
+        <h1><?= e(cms($hero['title'] ?? 'Where Faith Guides Learning, and Learning Inspires Purpose')) ?></h1>
         <span class="sec-rule" aria-hidden="true"><img src="<?= e(asset('assets/img/heading-rule-light.svg')) ?>" alt=""></span>
         <?php if ($heroLead !== ''): ?>
-            <p class="hero-lead"><?= e(ft($heroLead)) ?></p>
+            <p class="hero-lead"><?= e(cms($heroLead)) ?></p>
         <?php endif; ?>
     </div>
     <script>
@@ -136,7 +136,7 @@ $pillars = [
             $light = false;
             require APP_PATH . '/Views/components/section-head.php';
             ?>
-            <p><?= e(ft($aboutPreview['content'] ?? '')) ?></p>
+            <p><?= e(cms($aboutPreview['content'] ?? '')) ?></p>
             <?php
             $aboutPoints = is_array($aboutExtra['points'] ?? null) ? $aboutExtra['points'] : [
                 'Qur’an, Sunnah, and Islamic character as the foundation',
@@ -148,11 +148,11 @@ $pillars = [
             <?php if ($aboutPoints): ?>
             <ul class="about-points">
                 <?php foreach ($aboutPoints as $point): ?>
-                    <li><?= e(ft($point)) ?></li>
+                    <li><?= e(cms($point)) ?></li>
                 <?php endforeach; ?>
             </ul>
             <?php endif; ?>
-            <a class="btn btn-walnut" href="<?= e(url('/about-us')) ?>"><?= e(tt($aboutExtra['cta_label'] ?? 'Learn More')) ?></a>
+            <a class="btn btn-walnut" href="<?= e(url('/about-us')) ?>"><?= e(cms($aboutExtra['cta_label'] ?? 'Learn More')) ?></a>
         </div>
     </div>
 </section>
@@ -203,8 +203,8 @@ $pillars = [
                 <li>
                     <article class="pillar-card">
                         <span class="pillar-mark"><?= $pillar['icon'] ?></span>
-                        <h3><?= e(ft($title !== '' ? $title : $pillar['title'])) ?></h3>
-                        <p>(<?= e(ft($meaning !== '' ? $meaning : $pillar['meaning'])) ?>)</p>
+                        <h3><?= e(cms($title !== '' ? $title : $pillar['title'])) ?></h3>
+                        <p>(<?= e(cms($meaning !== '' ? $meaning : $pillar['meaning'])) ?>)</p>
                     </article>
                 </li>
             <?php endforeach; ?>
@@ -232,7 +232,7 @@ $pillars = [
                 <?php endforeach; ?>
             </div>
             <?php $coursesExtra = json_decode((string) ($sections['courses_intro']['extra_json'] ?? ''), true) ?: []; ?>
-            <p class="section-cta"><a class="btn btn-walnut" href="<?= e(url($coursesExtra['more_url'] ?? '/courses')) ?>"><?= e(tt($coursesExtra['more_label'] ?? 'View all courses')) ?></a></p>
+            <p class="section-cta"><a class="btn btn-walnut" href="<?= e(url($coursesExtra['more_url'] ?? '/courses')) ?>"><?= e(cms($coursesExtra['more_label'] ?? 'View all courses')) ?></a></p>
         <?php endif; ?>
     </div>
 </section>
@@ -259,7 +259,7 @@ $pillars = [
                 <?php endforeach; ?>
             </div>
             <?php $activitiesExtra = json_decode((string) ($sections['activities_intro']['extra_json'] ?? ''), true) ?: []; ?>
-            <p class="section-cta"><a class="btn btn-walnut" href="<?= e(url($activitiesExtra['more_url'] ?? '/social-activities')) ?>"><?= e(tt($activitiesExtra['more_label'] ?? 'All social activities')) ?></a></p>
+            <p class="section-cta"><a class="btn btn-walnut" href="<?= e(url($activitiesExtra['more_url'] ?? '/social-activities')) ?>"><?= e(cms($activitiesExtra['more_label'] ?? 'All social activities')) ?></a></p>
         <?php endif; ?>
     </div>
 </section>
@@ -286,7 +286,7 @@ $pillars = [
                 <?php endforeach; ?>
             </div>
             <?php $galleryExtra = json_decode((string) ($sections['gallery_intro']['extra_json'] ?? ''), true) ?: []; ?>
-            <p class="section-cta"><a class="btn btn-walnut" href="<?= e(url($galleryExtra['more_url'] ?? '/gallery')) ?>"><?= e(tt($galleryExtra['more_label'] ?? 'View Full Gallery')) ?></a></p>
+            <p class="section-cta"><a class="btn btn-walnut" href="<?= e(url($galleryExtra['more_url'] ?? '/gallery')) ?>"><?= e(cms($galleryExtra['more_label'] ?? 'View Full Gallery')) ?></a></p>
         <?php endif; ?>
     </div>
 </section>
@@ -303,7 +303,7 @@ $pillars = [
         $light = true;
         require APP_PATH . '/Views/components/section-head.php';
         ?>
-        <a class="btn btn-gold" href="<?= e(url($ctaExtra['cta_url'] ?? '/contact-us')) ?>"><?= e(tt($ctaExtra['cta_label'] ?? 'Contact Us')) ?></a>
+        <a class="btn btn-gold" href="<?= e(url($ctaExtra['cta_url'] ?? '/contact-us')) ?>"><?= e(cms($ctaExtra['cta_label'] ?? 'Contact Us')) ?></a>
     </div>
 </section>
 

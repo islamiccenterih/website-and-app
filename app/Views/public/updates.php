@@ -28,7 +28,7 @@ $todayStamp = $today ? strtotime((string) $today['published_on']) : false;
             </p>
             <article class="updates-spotlight-card">
                 <div class="updates-spotlight-copy">
-                    <h2><a href="<?= e(url('/center-updates/' . $today['slug'])) ?>"><?= e(ft((string) $today['title'])) ?></a></h2>
+                    <h2><a href="<?= e(url('/center-updates/' . $today['slug'])) ?>"><?= e(cms((string) $today['title'])) ?></a></h2>
                     <p><?= e(\App\Models\CenterUpdate::cardExcerpt($today, 240)) ?></p>
                     <p class="updates-spotlight-cta">
                         <a class="btn btn-gold" href="<?= e(url('/center-updates/' . $today['slug'])) ?>"><?= e(tt('Read update')) ?></a>
@@ -64,7 +64,7 @@ $todayStamp = $today ? strtotime((string) $today['published_on']) : false;
                         <?php if ($stamp): ?>
                             <time datetime="<?= e((string) $row['published_on']) ?>"><?= e(date('j', $stamp)) ?> <?= e(tt(date('F', $stamp))) ?> <?= e(date('Y', $stamp)) ?></time>
                         <?php endif; ?>
-                        <strong><?= e(ft((string) $row['title'])) ?></strong>
+                        <strong><?= e(cms((string) $row['title'])) ?></strong>
                         <em><?= e(\App\Models\CenterUpdate::cardExcerpt($row, 120)) ?></em>
                         <span class="updates-tile-go"><?= e(tt('Open this update')) ?></span>
                     </span>

@@ -32,10 +32,10 @@
             <span class="pill"><?= e(ucfirst($course['mode'])) ?></span>
         </div>
         <div class="prose">
-            <?= ft($bodyHtml ?: '') ?: '<p>A full description will appear here once it is entered in the Admin Panel.</p>' ?>
+            <?= $bodyHtml ?: '<p>A full description will appear here once it is entered in the Admin Panel.</p>' ?>
             <?php if (!empty($course['additional_info'])): ?>
                 <h2>Additional information</h2>
-                <p><?= e(ft($course['additional_info'])) ?></p>
+                <p><?= e(cms($course['additional_info'])) ?></p>
             <?php endif; ?>
         </div>
         <?php if ($images): ?>

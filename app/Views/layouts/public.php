@@ -128,9 +128,9 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
                 <img src="<?= e($logo ? upload_url($logo) : asset('assets/img/logo.png')) ?>" alt="<?= e(site_name()) ?>">
             </a>
             <div class="footer-brand-copy">
-                <h3><?= e(ft((string) setting('footer_brand_title', site_name()) ?: site_name())) ?></h3>
+                <h3><?= e(cms((string) setting('footer_brand_title', site_name()) ?: site_name())) ?></h3>
                 <?php if ($footerNote !== ''): ?>
-                    <p><?= e(ft($footerNote)) ?></p>
+                    <p><?= e(cms($footerNote)) ?></p>
                 <?php endif; ?>
             </div>
         </div>
@@ -143,7 +143,7 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
             </p>
         </div>
         <div class="footer-col footer-legal">
-            <h3><?= e(tt($legalHeading)) ?></h3>
+            <h3><?= e(cms($legalHeading)) ?></h3>
             <nav class="footer-links" aria-label="<?= e(tt('Legal')) ?>">
                 <?php foreach (footer_links() as $link): ?>
                     <a href="<?= e(str_starts_with($link['url'], 'http') ? $link['url'] : url($link['url'])) ?>"><?= e($link['label']) ?></a>

@@ -34,11 +34,11 @@ $values = is_array($foundationExtra['values'] ?? null) ? $foundationExtra['value
             $light = false;
             require APP_PATH . '/Views/components/section-head.php';
             ?>
-            <?= ft(App\Core\Html::clean($foundation['content'] ?? '')) ?>
+            <?= App\Core\Html::clean($foundation['content'] ?? '') ?>
             <?php if ($values): ?>
                 <ul class="value-row">
                     <?php foreach ($values as $value): ?>
-                        <li><?= e(ft((string) $value)) ?></li>
+                        <li><?= e(cms((string) $value)) ?></li>
                     <?php endforeach; ?>
                 </ul>
             <?php endif; ?>
@@ -75,7 +75,7 @@ $foundersExtra = json_decode((string) ($foundersIntro['extra_json'] ?? ''), true
                     <div class="body">
                         <h3><?= e($founder['name']) ?></h3>
                         <p class="role"><?= e($founder['designation']) ?></p>
-                        <p><?= e(ft($founder['biography'])) ?></p>
+                        <p><?= e(cms($founder['biography'])) ?></p>
                     </div>
                 </article>
             <?php endforeach; ?>
@@ -96,14 +96,14 @@ $foundersExtra = json_decode((string) ($foundersIntro['extra_json'] ?? ''), true
         $light = false;
         require APP_PATH . '/Views/components/section-head.php';
         ?>
-        <div class="prose"><?= ft(App\Core\Html::clean($history['content'] ?? '')) ?></div>
+        <div class="prose"><?= App\Core\Html::clean($history['content'] ?? '') ?></div>
         <?php if ($timeline): ?>
             <ol class="timeline">
                 <?php foreach ($timeline as $item): ?>
                     <li>
                         <div class="year"><?= e($item['year'] ?? '') ?></div>
-                        <h3><?= e(ft($item['title'] ?? '')) ?></h3>
-                        <p><?= e(ft($item['text'] ?? '')) ?></p>
+                        <h3><?= e(cms($item['title'] ?? '')) ?></h3>
+                        <p><?= e(cms($item['text'] ?? '')) ?></p>
                     </li>
                 <?php endforeach; ?>
             </ol>
@@ -130,7 +130,7 @@ $foundersExtra = json_decode((string) ($foundersIntro['extra_json'] ?? ''), true
                 $light = false;
                 require APP_PATH . '/Views/components/section-head.php';
                 ?>
-                <div class="prose"><?= ft(App\Core\Html::clean($mission['content'] ?? '')) ?></div>
+                <div class="prose"><?= App\Core\Html::clean($mission['content'] ?? '') ?></div>
             </article>
             <article class="purpose-block">
                 <?php if (!empty($vision['image'])): ?>
@@ -145,7 +145,7 @@ $foundersExtra = json_decode((string) ($foundersIntro['extra_json'] ?? ''), true
                 $light = false;
                 require APP_PATH . '/Views/components/section-head.php';
                 ?>
-                <div class="prose"><?= ft(App\Core\Html::clean($vision['content'] ?? '')) ?></div>
+                <div class="prose"><?= App\Core\Html::clean($vision['content'] ?? '') ?></div>
             </article>
         </div>
     </div>
@@ -163,6 +163,6 @@ $foundersExtra = json_decode((string) ($foundersIntro['extra_json'] ?? ''), true
         $light = false;
         require APP_PATH . '/Views/components/section-head.php';
         ?>
-        <div class="prose"><?= ft(App\Core\Html::clean($who['content'] ?? '')) ?></div>
+        <div class="prose"><?= App\Core\Html::clean($who['content'] ?? '') ?></div>
     </div>
 </section>

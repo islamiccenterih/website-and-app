@@ -58,7 +58,7 @@ $backUrl = url('/fatawa');
                                 <p class="fatwa-lang-label"><?= e($block['label']) ?></p>
                             <?php endif; ?>
                             <?php if ($block['title'] !== ''): ?>
-                                <h2><?= e(ft($block['title'])) ?></h2>
+                                <h2><?= e(cms($block['title'])) ?></h2>
                             <?php endif; ?>
                             <?php if ($block['body'] !== ''): ?>
                                 <div class="prose"><p><?= nl2br(e($block['body'])) ?></p></div>
@@ -160,7 +160,7 @@ $backUrl = url('/fatawa');
                         <li>
                             <a href="<?= e(url('/fatawa/' . $row['slug'])) ?>">
                                 <time datetime="<?= e((string) $row['issued_on']) ?>"><?= e(date('j M Y', strtotime((string) $row['issued_on']))) ?></time>
-                                <strong><?= e(ft(\App\Models\Fatwa::cardTitle($row))) ?></strong>
+                                <strong><?= e(cms(\App\Models\Fatwa::cardTitle($row))) ?></strong>
                             </a>
                         </li>
                     <?php endforeach; ?>

@@ -12,7 +12,7 @@
         <?php if (!empty($groups)): ?>
             <nav class="activity-toc" aria-label="Activity sections">
                 <?php foreach ($groups as $group): ?>
-                    <a href="#<?= e((string) $group['section']['slug']) ?>"><?= e(ft($group['section']['name'])) ?></a>
+                    <a href="#<?= e((string) $group['section']['slug']) ?>"><?= e(cms($group['section']['name'])) ?></a>
                 <?php endforeach; ?>
             </nav>
         <?php endif; ?>

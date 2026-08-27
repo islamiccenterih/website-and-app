@@ -9,13 +9,13 @@ $rule = $light ? 'assets/img/heading-rule-light.svg' : 'assets/img/heading-rule.
 ?>
 <div class="sec-head sec-head-<?= e($align) ?><?= $light ? ' is-light' : '' ?>">
     <?php if ($kicker !== ''): ?>
-        <span class="sec-kicker"><?= e(tt($kicker)) ?></span>
+        <span class="sec-kicker"><?= e(cms($kicker)) ?></span>
     <?php endif; ?>
-    <<?= $tag ?>><?= e(tt($title)) ?></<?= $tag ?>>
+    <<?= $tag ?>><?= e(cms($title)) ?></<?= $tag ?>>
     <span class="sec-rule" aria-hidden="true">
         <img src="<?= e(asset($rule)) ?>" alt="">
     </span>
     <?php if ($lead !== ''): ?>
-        <p class="sec-lead"><?= e(tt($lead)) ?></p>
+        <p class="sec-lead"><?= e(cms($lead)) ?></p>
     <?php endif; ?>
 </div>
