@@ -15,6 +15,45 @@ final class ZakatService
     private const SILVER_NISAB_G = 612.36;
     private const RATE = 2.5;
 
+    /**
+     * Fresh India IBJA rates for the calculator. Cached for 10 minutes.
+     *
+     * @return array<string, mixed>
+     */
+    public function liveSnapshot(): array
+    {
+        $tz = new \DateTimeZone('Asia/Kolkata');
+        $today = (new \DateTimeImmutable('now', $tz))->format('Y-m-d');
+        $cfg = $this->config();
+        $file = STORAGE_PATH . '/cache/zakat-india.json';
+        $cached = HttpJson::read($file);
+        if (is_array($cached) && !empty($cached['india']) && !empty($cached['gold_per_gram_inr']) && !empty($cached['fetched_at'])) {
+            $age = time() - strtotime((string) $cached['fetched_at']);
+            if ($age >= 0 && $age < 600) {
+                $cached['live'] = true;
+                $cached['stale'] = false;
+                $cached['ok'] = true;
+                return $this->withConfig($cached, $cfg);
+            }
+        }
+        try {
+            $fresh = $this->fetchIndia($today);
+            HttpJson::write($file, $fresh);
+            return $this->withConfig($fresh, $cfg);
+        } catch (\Throwable) {
+            return $this->withConfig([
+                'ok' => false,
+                'live' => false,
+                'stale' => true,
+                'india' => false,
+                'error' => 'India gold and silver rates could not be loaded.',
+                'for_date' => $today,
+                'gold_per_gram_inr' => 0,
+                'silver_per_gram_inr' => 0,
+            ], $cfg);
+        }
+    }
+
     public function snapshot(): array
     {
         $tz = new \DateTimeZone('Asia/Kolkata');
@@ -164,6 +203,118 @@ final class ZakatService
         $snap['gold_per_10g_inr'] = round($goldPerG * 10, 2);
         $snap['silver_per_kg_inr'] = round($silverPerG * 1000, 2);
         return $snap;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function fetchIndia(string $today): array
+    {
+        $html = '';
+        try {
+            $html = $this->fetchPage('https://r.jina.ai/https://ibjarates.com/', 12);
+        } catch (\Throwable) {
+            $html = '';
+        }
+        if ($html === '') {
+            $html = $this->fetchPage('https://ibjarates.com/', 8);
+        }
+        $row = $this->parseIbja($html);
+        if ($row === null) {
+            throw new \RuntimeException('India bullion table was empty.');
+        }
+        $gst = 1.03;
+        $gold10 = $row['gold10'] * $gst;
+        $silverKg = $row['silver_kg'] * $gst;
+        $goldPerG = $gold10 / 10;
+        $silverPerG = $silverKg / 1000;
+        $parts = explode('/', $row['date']);
+        $iso = count($parts) === 3 ? ($parts[2] . '-' . $parts[1] . '-' . $parts[0]) : $today;
+
+        return [
+            'ok' => true,
+            'error' => null,
+            'stale' => false,
+            'live' => true,
+            'india' => true,
+            'for_date' => $iso,
+            'fetched_at' => gmdate('c'),
+            'source' => 'IBJA India 24k + 3% GST',
+            'gold_per_gram_inr' => round($goldPerG, 4),
+            'silver_per_gram_inr' => round($silverPerG, 4),
+            'purity' => 'India 24k / 999 silver (IBJA + GST, not jewellery making charges)',
+        ];
+    }
+
+    /**
+     * @return array{date:string,gold10:float,silver_kg:float}|null
+     */
+    private function parseIbja(string $text): ?array
+    {
+        $best = null;
+        if (preg_match_all('/\|\s*\*{0,2}(\d{2}\/\d{2}\/\d{4})\*{0,2}\s*\|\s*(\d{5,7})\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*(\d{5,7})\s*\|/', $text, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $row = [
+                    'date' => $match[1],
+                    'gold10' => (float) $match[2],
+                    'silver_kg' => (float) $match[3],
+                ];
+                if ($best === null || $row['date'] === $best['date']) {
+                    $best = $row;
+                }
+            }
+        }
+        if ($best !== null) {
+            return $best;
+        }
+        if (
+            preg_match('/data-label="Gold 999">\s*(\d{5,7})/', $text, $gold)
+            && preg_match('/data-label="Silver 999">\s*(\d{5,7})/', $text, $silver)
+        ) {
+            $date = '';
+            if (preg_match('/<strong>(\d{2}\/\d{2}\/\d{4})<\/strong>/', $text, $d)) {
+                $date = $d[1];
+            }
+            return [
+                'date' => $date,
+                'gold10' => (float) $gold[1],
+                'silver_kg' => (float) $silver[1],
+            ];
+        }
+        return null;
+    }
+
+    private function fetchPage(string $url, int $timeout): string
+    {
+        $timeout = max(3, $timeout);
+        if (!function_exists('curl_init')) {
+            return HttpJson::fetch($url, $timeout);
+        }
+        $ch = curl_init($url);
+        if ($ch === false) {
+            throw new \RuntimeException('Upstream request failed.');
+        }
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 4,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_HTTPHEADER => [
+                'Accept: text/html,text/plain,*/*',
+                'User-Agent: Mozilla/5.0 (compatible; IslamicCenter/1.2)',
+            ],
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+        ]);
+        $raw = curl_exec($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err = curl_error($ch);
+        curl_close($ch);
+        if (is_string($raw) && $raw !== '' && $code > 0 && $code < 400) {
+            return $raw;
+        }
+        throw new \RuntimeException($err !== '' ? $err : 'Upstream HTTP ' . $code);
     }
 
     /**

@@ -32,7 +32,7 @@
     if (g10) g10.textContent = rupee(spot.gold_per_10g_inr) + ' / 10g 24k';
     if (sKg) sKg.textContent = rupee(spot.silver_per_kg_inr) + ' / kg';
     if (date) date.textContent = lastFetchAt ? istClock(lastFetchAt) : (spot.for_date || '');
-    if (note) note.textContent = 'Live gold & silver · INR · refreshes every 10s';
+    if (note) note.textContent = 'India 24k · IBJA + GST · same as Google gold/silver';
     if (errorBox) {
       errorBox.hidden = true;
       errorBox.textContent = '';
@@ -87,7 +87,7 @@
     if (!clockEl || !lastFetchAt) return;
     clockEl.textContent = istClock(lastFetchAt);
     if (noteEl && isLiveSpot(liveSpot)) {
-      noteEl.textContent = 'Live gold & silver · INR · refreshes every 10s';
+      noteEl.textContent = 'India 24k · IBJA + GST · same as Google gold/silver';
     }
   };
 
@@ -178,14 +178,20 @@
     if (window.ICLive && typeof ICLive.metalSpot === 'function') {
       return ICLive.metalSpot({ gold_nisab_g: goldG, silver_nisab_g: silverG, rate, nisab_method: method })
         .then(apply)
-        .catch(fail);
+        .catch(() => {
+          const nisabUrl = root.getAttribute('data-nisab-url') || '/api/zakat/nisab';
+          return fetch(nisabUrl, { cache: 'no-store', headers: { Accept: 'application/json' } })
+            .then((res) => res.json())
+            .then(apply)
+            .catch(fail);
+        });
     }
     fail();
     return Promise.resolve();
   };
 
   loadNisab();
-  setInterval(loadNisab, 10000);
+  setInterval(loadNisab, 60000);
   setInterval(paintClock, 1000);
   if (window.ICLive && typeof ICLive.watchFresh === 'function') {
     ICLive.watchFresh(loadNisab, 8000);

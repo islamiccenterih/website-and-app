@@ -36,7 +36,7 @@ $spot = is_array($spot ?? null) ? $spot : [];
             <article>
                 <span>Live metal rates</span>
                 <strong data-spot-date data-spot-clock>—</strong>
-                <em data-spot-note>Connecting to live gold &amp; silver…</em>
+                <em data-spot-note>Connecting to India gold &amp; silver (IBJA)…</em>
             </article>
         </div>
             <p class="salah-error" hidden data-zakat-error></p>
@@ -76,4 +76,4 @@ $spot = is_array($spot ?? null) ? $spot : [];
         </aside>
     </div>
 </section>
-<script src="<?= e(asset('assets/js/zakat.js')) ?>?v=5" defer></script>
+<script src="<?= e(asset('assets/js/zakat.js')) ?>?v=6" defer></script>

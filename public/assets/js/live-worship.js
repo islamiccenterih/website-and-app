@@ -1,5 +1,4 @@
 window.ICLive = (() => {
-  const TROY = 31.1034768;
 
   const istStamp = (type) => {
     const parts = new Intl.DateTimeFormat('en-GB', {
@@ -229,49 +228,77 @@ window.ICLive = (() => {
     };
   };
 
-  const metalSpot = (cfg) => {
+  const getText = (url, ms) => {
+    const ctrl = new AbortController();
+    const timer = window.setTimeout(() => ctrl.abort(), ms || 12000);
+    return fetch(url, { signal: ctrl.signal, cache: 'no-store' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Upstream HTTP ' + res.status);
+        return res.text();
+      })
+      .finally(() => window.clearTimeout(timer));
+  };
+
+  const parseIbja = (text) => {
+    const re = /\|\s*\*{0,2}(\d{2}\/\d{2}\/\d{4})\*{0,2}\s*\|\s*(\d{5,7})\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*(\d{5,7})\s*\|/g;
+    let match;
+    let best = null;
+    while ((match = re.exec(text))) {
+      const row = { date: match[1], gold10: Number(match[2]), silverKg: Number(match[3]) };
+      if (!best || row.date === best.date) best = row;
+    }
+    if (best) return best;
+    const htmlGold = text.match(/data-label="Gold 999">\s*(\d{5,7})/);
+    const htmlSilver = text.match(/data-label="Silver 999">\s*(\d{5,7})/);
+    const htmlDate = text.match(/<strong>(\d{2}\/\d{2}\/\d{4})<\/strong>/);
+    if (htmlGold && htmlSilver) {
+      return { date: htmlDate ? htmlDate[1] : '', gold10: Number(htmlGold[1]), silverKg: Number(htmlSilver[1]) };
+    }
+    return null;
+  };
+
+  const packIndiaSpot = (cfg, row) => {
     const goldG = Number((cfg && cfg.gold_nisab_g) || 87.48);
     const silverG = Number((cfg && cfg.silver_nisab_g) || 612.36);
     const rate = Number((cfg && cfg.rate) || 2.5);
     const method = (cfg && cfg.nisab_method) || 'lower';
-    const fxSpot = () => getJson('https://api.frankfurter.dev/v1/latest?from=USD&to=INR', 8000)
-      .catch(() => getJson('https://open.er-api.com/v6/latest/USD', 8000));
-    return Promise.all([
-      getJson('https://api.gold-api.com/price/XAU', 8000),
-      getJson('https://api.gold-api.com/price/XAG', 8000),
-      fxSpot(),
-    ]).then(([gold, silver, fx]) => {
-      const goldOz = Number(gold && gold.price) || 0;
-      const silverOz = Number(silver && silver.price) || 0;
-      const usdInr = Number(fx && fx.rates && fx.rates.INR) || 0;
-      if (goldOz <= 0 || silverOz <= 0 || usdInr <= 0) throw new Error('Incomplete metals');
-      const goldPerG = (goldOz / TROY) * usdInr;
-      const silverPerG = (silverOz / TROY) * usdInr;
-      const goldNisab = goldG * goldPerG;
-      const silverNisab = silverG * silverPerG;
-      const nisab = method === 'gold' ? goldNisab : (method === 'silver' ? silverNisab : Math.min(goldNisab, silverNisab) || Math.max(goldNisab, silverNisab));
-      return {
-        ok: true,
-        error: null,
-        stale: false,
-        live: true,
-        source: 'gold-api.com + frankfurter.dev',
-        for_date: istStamp('iso'),
-        gold_per_gram_inr: goldPerG,
-        silver_per_gram_inr: silverPerG,
-        gold_nisab_g: goldG,
-        silver_nisab_g: silverG,
-        gold_nisab_inr: goldNisab,
-        silver_nisab_inr: silverNisab,
-        gold_per_10g_inr: goldPerG * 10,
-        silver_per_kg_inr: silverPerG * 1000,
-        usd_inr: usdInr,
-        rate,
-        nisab_method: method,
-        nisab,
-      };
-    });
+    const gst = 1.03;
+    const gold10 = row.gold10 * gst;
+    const silverKg = row.silverKg * gst;
+    const goldPerG = gold10 / 10;
+    const silverPerG = silverKg / 1000;
+    const goldNisab = goldG * goldPerG;
+    const silverNisab = silverG * silverPerG;
+    const parts = String(row.date || '').split('/');
+    const iso = parts.length === 3 ? parts[2] + '-' + parts[1] + '-' + parts[0] : istStamp('iso');
+    return {
+      ok: true,
+      error: null,
+      stale: false,
+      live: true,
+      india: true,
+      source: 'IBJA India 24k + 3% GST',
+      for_date: iso,
+      gold_per_gram_inr: goldPerG,
+      silver_per_gram_inr: silverPerG,
+      gold_nisab_g: goldG,
+      silver_nisab_g: silverG,
+      gold_nisab_inr: goldNisab,
+      silver_nisab_inr: silverNisab,
+      gold_per_10g_inr: gold10,
+      silver_per_kg_inr: silverKg,
+      rate,
+      nisab_method: method,
+      nisab: method === 'gold' ? goldNisab : (method === 'silver' ? silverNisab : Math.min(goldNisab, silverNisab) || Math.max(goldNisab, silverNisab)),
+    };
   };
+
+  const metalSpot = (cfg) => getText('https://r.jina.ai/https://ibjarates.com/', 12000)
+    .then((text) => {
+      const row = parseIbja(text);
+      if (!row || row.gold10 < 10000 || row.silverKg < 10000) throw new Error('Empty India rates');
+      return packIndiaSpot(cfg, row);
+    });
 
   const moonWeek = (lat, lng) => {
     const start = istStamp('iso');

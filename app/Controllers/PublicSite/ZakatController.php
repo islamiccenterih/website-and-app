@@ -21,7 +21,7 @@ final class ZakatController extends Controller
 
     public function nisab(): void
     {
-        json_response((new ZakatService())->snapshot());
+        json_response((new ZakatService())->liveSnapshot());
     }
 
     public function calculate(): void

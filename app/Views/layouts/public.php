@@ -45,7 +45,7 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
     <link rel="icon" href="<?= e(asset('assets/img/favicon.png')) ?>">
     <link rel="preload" href="<?= e(asset('assets/fonts/merriweather-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=83">
-    <script src="<?= e(asset('assets/js/live-worship.js')) ?>?v=4" defer></script>
+    <script src="<?= e(asset('assets/js/live-worship.js')) ?>?v=5" defer></script>
 </head>
 <body class="<?= faith_terms_active() ? 'has-faith-terms' : '' ?>">
 <a class="skip-link" href="#main"><?= e(tt('Skip to content')) ?></a>
