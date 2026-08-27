@@ -18,7 +18,6 @@
             </div>
             <button class="btn btn-walnut btn-block" type="submit"><?= e(tt('Sign in')) ?></button>
         </form>
-        <p class="help" style="margin-top:1rem"><?= e(tt('Owner demo: admin@example.com / Admin@12345 — change this after first login. New managers are created under Panel members after the owner signs in.')) ?></p>
         <p><a href="<?= e(url('/')) ?>"><?= e(tt('Back to website')) ?></a></p>
     </div>
 </div>

@@ -66,10 +66,6 @@ if ($legalHeadingValue === '' || strcasecmp($legalHeadingValue, 'Explore') === 0
 
     <h2>Footer — bottom bar</h2>
     <div class="field"><label>Copyright line</label><input name="footer_copyright" value="<?= e((string) setting('footer_copyright')) ?>" placeholder="© <?= date('Y') ?> <?= e(site_name()) ?>. All rights reserved."></div>
-    <div class="row-2">
-        <div class="field"><label>Admin prefix</label><input name="footer_admin_prefix" value="<?= e((string) setting('footer_admin_prefix', 'Administration:')) ?>"></div>
-        <div class="field"><label>Admin login label</label><input name="footer_admin_label" value="<?= e((string) setting('footer_admin_label', 'Admin login')) ?>"></div>
-    </div>
     <button class="btn btn-walnut" type="submit">Save header and footer</button>
 </form>
 <script>

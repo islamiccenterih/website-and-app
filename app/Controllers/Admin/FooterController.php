@@ -28,8 +28,6 @@ final class FooterController extends BaseController
             'footer_legal_heading' => faith_terms_store(trim((string) ($_POST['footer_legal_heading'] ?? $_POST['footer_explore_heading'] ?? 'Legal'))),
             'footer_explore_heading' => faith_terms_store(trim((string) ($_POST['footer_legal_heading'] ?? $_POST['footer_explore_heading'] ?? 'Legal'))),
             'footer_copyright' => trim((string) ($_POST['footer_copyright'] ?? '')),
-            'footer_admin_prefix' => trim((string) ($_POST['footer_admin_prefix'] ?? 'Administration:')),
-            'footer_admin_label' => trim((string) ($_POST['footer_admin_label'] ?? 'Admin login')),
             'header_login_label' => trim((string) ($_POST['header_login_label'] ?? 'Student Login')),
             'header_nav' => json_encode($this->collectLinks('nav_label', 'nav_url', 'nav_hidden'), JSON_UNESCAPED_UNICODE),
             'footer_links' => json_encode($this->collectLinks('link_label', 'link_url', 'link_hidden'), JSON_UNESCAPED_UNICODE),

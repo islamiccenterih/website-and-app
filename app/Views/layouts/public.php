@@ -11,7 +11,6 @@ foreach ($navMore as $moreItem) {
 }
 $logo = setting('logo_image');
 $loginLabel = tt((string) setting('header_login_label', 'Student Login') ?: 'Student Login');
-$adminPrefix = tt((string) setting('footer_admin_prefix', 'Administration:') ?: 'Administration:');
 $lang = \App\I18n\Lang::code();
 $langDir = \App\I18n\Lang::dir();
 $langHtml = \App\I18n\Lang::html();
@@ -154,7 +153,6 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
     </div>
     <div class="container footer-bottom">
         <span><?= e((string) setting('footer_copyright') ?: ('© ' . date('Y') . ' ' . site_name() . '. All rights reserved.')) ?></span>
-        <span class="footer-admin"><span class="footer-admin-prefix"><?= e($adminPrefix) ?></span> <a href="<?= e(url('/admin/login')) ?>"><?= e(tt((string) setting('footer_admin_label', 'Admin login') ?: 'Admin login')) ?></a></span>
     </div>
 </footer>
 <div class="scroll-bar" data-scroll-bar aria-hidden="true"></div>
