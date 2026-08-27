@@ -232,6 +232,9 @@ function redirect(string $path, int $code = 302): never
 
 function old(string $key, mixed $default = ''): mixed
 {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        return $default;
+    }
     $flash = $_SESSION['_old'][$key] ?? $default;
     return $flash;
 }
@@ -239,8 +242,12 @@ function old(string $key, mixed $default = ''): mixed
 function flash(string $key, ?string $message = null): ?string
 {
     if ($message !== null) {
+        App\Core\Session::start();
         $_SESSION['_flash'][$key] = $message;
         return $message;
+    }
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        return null;
     }
     $value = $_SESSION['_flash'][$key] ?? null;
     unset($_SESSION['_flash'][$key]);
@@ -249,6 +256,7 @@ function flash(string $key, ?string $message = null): ?string
 
 function csrf_token(): string
 {
+    App\Core\Session::start();
     if (empty($_SESSION['_csrf'])) {
         $_SESSION['_csrf'] = bin2hex(random_bytes(32));
     }
@@ -357,6 +365,9 @@ function is_active(string $path): bool
 
 function auth_user(): ?array
 {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        return null;
+    }
     return $_SESSION['auth'] ?? null;
 }
 

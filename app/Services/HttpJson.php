@@ -29,7 +29,7 @@ final class HttpJson
 
     public static function fetch(string $url, int $timeout = 10): string
     {
-        $timeout = max(3, $timeout);
+        $timeout = max(1, $timeout);
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
             if ($ch !== false) {
@@ -37,7 +37,7 @@ final class HttpJson
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_FOLLOWLOCATION => true,
                     CURLOPT_MAXREDIRS => 4,
-                    CURLOPT_CONNECTTIMEOUT => min(6, $timeout),
+                    CURLOPT_CONNECTTIMEOUT => min(2, $timeout),
                     CURLOPT_TIMEOUT => $timeout,
                     CURLOPT_HTTPHEADER => [
                         'Accept: application/json',

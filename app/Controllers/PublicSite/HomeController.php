@@ -56,7 +56,7 @@ final class HomeController extends Controller
             'courses' => Course::featured(6),
             'activities' => Activity::featured(6),
             'gallery' => Gallery::featured(8),
-            'prayer' => (new PrayerService())->timings('Firozabad', 'Uttar Pradesh'),
+            'prayer' => (new PrayerService())->timings('Firozabad', 'Uttar Pradesh', false),
             'heroDua' => QuranDuaService::current(),
         ]);
     }

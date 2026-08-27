@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 /**
- * Daily salah times from AlAdhan (no API key).
- * Method 1 = University of Islamic Sciences, Karachi; school 1 = Hanafi Asr.
+ * Daily salah times: Karachi method, Hanafi Asr, computed on the server.
+ * Times refresh every day from the date and city coordinates — no remote wait.
  */
 final class PrayerService
 {
@@ -15,8 +15,19 @@ final class PrayerService
         return ['name' => 'Firozabad', 'state' => 'Uttar Pradesh'];
     }
 
-    public function timings(?string $city = null, ?string $state = null): array
+    public function timings(?string $city = null, ?string $state = null, bool $wait = true): array
     {
+        $tz = new \DateTimeZone('Asia/Kolkata');
+
+        return $this->forDate($city, $state, new \DateTimeImmutable('now', $tz), $wait);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function forDate(?string $city, ?string $state, \DateTimeImmutable $when, bool $wait = true): array
+    {
+        unset($wait);
         $city = trim((string) $city);
         $state = trim((string) $state);
         if ($city === '') {
@@ -26,79 +37,48 @@ final class PrayerService
         }
 
         $tz = new \DateTimeZone('Asia/Kolkata');
-        $now = new \DateTimeImmutable('now', $tz);
-        $today = $now->format('Y-m-d');
-        $dateParam = $now->format('d-m-Y');
-        $cacheKey = 'prayer-' . md5(mb_strtolower($city . '|' . $state) . '|' . $today . '|imsak');
-        $untilMidnight = max(60, $now->modify('tomorrow')->setTime(0, 0)->getTimestamp() - $now->getTimestamp());
+        $when = $when->setTimezone($tz);
+        $clock = new \DateTimeImmutable('now', $tz);
+        $day = $when->setTime(12, 0);
+        $today = $day->format('Y-m-d');
+        $cacheKey = 'prayer-' . md5(mb_strtolower($city . '|' . $state) . '|' . $today . '|local-karachi');
+        $untilMidnight = max(60, $clock->modify('tomorrow')->setTime(0, 0)->getTimestamp() - $clock->getTimestamp());
         $cached = $this->cacheGet($cacheKey, $today, $untilMidnight);
         if ($cached !== null) {
-            return $this->withLiveCurrent($cached, $now);
+            return $this->withLiveCurrent($cached, $clock);
         }
 
-        $query = http_build_query([
-            'city' => $city,
-            'country' => 'India',
-            'method' => 1,
-            'school' => 1,
-        ]);
-        $url = 'https://api.aladhan.com/v1/timingsByCity/' . $dateParam . '?' . $query;
-
-        try {
-            $payload = HttpJson::get($url, 10, 2);
-            $times = $payload['data']['timings'] ?? [];
-            $metaDate = $payload['data']['date'] ?? [];
-            if (!$times || (int) ($payload['code'] ?? 0) !== 200) {
-                throw new \RuntimeException('Prayer times were empty.');
-            }
-        } catch (\Throwable $e) {
-            $stale = $this->cacheStale($cacheKey);
-            if ($stale !== null) {
-                $stale['stale'] = true;
-                $stale['city'] = $city;
-                $stale['state'] = $state;
-                return $this->withLiveCurrent($stale, $now);
-            }
-            return [
-                'ok' => false,
-                'error' => 'Prayer times could not be loaded for this city. Try another city, or wait a moment.',
-                'city' => $city,
-                'state' => $state,
-                'date' => $now->format('l, j F Y'),
-                'for_date' => $today,
-                'prayers' => [],
-                'current' => null,
-            ];
-        }
-
+        $point = IndiaCoords::forCity($city, $state);
+        $times = LocalPrayerTimes::compute($point['lat'], $point['lng'], $day);
         $prayers = [
-            ['key' => 'fajr', 'name' => 'Fajr', 'time' => $this->formatTime($times['Fajr'] ?? '')],
-            ['key' => 'zuhr', 'name' => 'Zuhr', 'time' => $this->formatTime($times['Dhuhr'] ?? '')],
-            ['key' => 'asr', 'name' => 'Asr', 'time' => $this->formatTime($times['Asr'] ?? '')],
-            ['key' => 'maghrib', 'name' => 'Maghrib', 'time' => $this->formatTime($times['Maghrib'] ?? '')],
-            ['key' => 'isha', 'name' => 'Isha', 'time' => $this->formatTime($times['Isha'] ?? '')],
-            ['key' => 'jummah', 'name' => 'Jummah', 'time' => $this->formatTime($times['Dhuhr'] ?? '')],
+            ['key' => 'fajr', 'name' => 'Fajr', 'time' => $this->formatTime($times['fajr'])],
+            ['key' => 'zuhr', 'name' => 'Zuhr', 'time' => $this->formatTime($times['dhuhr'])],
+            ['key' => 'asr', 'name' => 'Asr', 'time' => $this->formatTime($times['asr'])],
+            ['key' => 'maghrib', 'name' => 'Maghrib', 'time' => $this->formatTime($times['maghrib'])],
+            ['key' => 'isha', 'name' => 'Isha', 'time' => $this->formatTime($times['isha'])],
+            ['key' => 'jummah', 'name' => 'Jummah', 'time' => $this->formatTime($times['dhuhr'])],
         ];
 
-        $readable = trim((string) ($metaDate['readable'] ?? ''));
         $result = [
             'ok' => true,
             'error' => null,
             'city' => $city,
             'state' => $state,
-            'date' => $readable !== '' ? $readable : $now->format('j F Y'),
-            'weekday' => $now->format('l'),
+            'date' => $day->format('j F Y'),
+            'weekday' => $day->format('l'),
             'for_date' => $today,
             'timezone' => 'Asia/Kolkata',
             'prayers' => $prayers,
-            'current' => $this->currentFromPrayers($prayers, $now),
-            'sunrise' => $this->formatTime($times['Sunrise'] ?? ''),
-            'imsak' => $this->formatTime($times['Imsak'] ?? ''),
-            'fajr' => $this->formatTime($times['Fajr'] ?? ''),
-            'maghrib' => $this->formatTime($times['Maghrib'] ?? ''),
+            'current' => $this->currentFromPrayers($prayers, $clock),
+            'sunrise' => $this->formatTime($times['sunrise']),
+            'imsak' => $this->formatTime($times['imsak']),
+            'fajr' => $this->formatTime($times['fajr']),
+            'maghrib' => $this->formatTime($times['maghrib']),
+            'isha' => $this->formatTime($times['isha']),
         ];
         $this->cacheSet($cacheKey, $result);
-        return $result;
+
+        return $this->withLiveCurrent($result, $clock);
     }
 
     private function formatTime(string $raw): string
@@ -202,7 +182,11 @@ final class PrayerService
 
     private function cacheSet(string $key, array $data): void
     {
-        @file_put_contents(STORAGE_PATH . '/cache/' . $key . '.json', json_encode($data, JSON_UNESCAPED_UNICODE));
+        $dir = STORAGE_PATH . '/cache';
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+        @file_put_contents($dir . '/' . $key . '.json', json_encode($data, JSON_UNESCAPED_UNICODE));
     }
 
     /**

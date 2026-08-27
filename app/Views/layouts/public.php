@@ -63,9 +63,9 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
         <div class="container header-inner">
             <a class="logo" href="<?= e(url('/')) ?>">
                 <?php if ($logo): ?>
-                    <img src="<?= e(upload_url($logo)) ?>" alt="<?= e(site_name()) ?>">
+                    <img src="<?= e(upload_url($logo)) ?>" alt="<?= e(site_name()) ?>" fetchpriority="high">
                 <?php else: ?>
-                    <img src="<?= e(asset('assets/img/logo.png')) ?>" alt="<?= e(site_name()) ?>">
+                    <img src="<?= e(asset('assets/img/logo.png')) ?>" alt="<?= e(site_name()) ?>" fetchpriority="high">
                 <?php endif; ?>
             </a>
             <nav class="site-nav" id="site-nav" aria-label="<?= e(tt('Main')) ?>">
@@ -125,7 +125,7 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
     <div class="container footer-grid">
         <div class="footer-brand">
             <a class="footer-logo" href="<?= e(url('/')) ?>">
-                <img src="<?= e($logo ? upload_url($logo) : asset('assets/img/logo.png')) ?>" alt="<?= e(site_name()) ?>">
+                <img src="<?= e($logo ? upload_url($logo) : asset('assets/img/logo.png')) ?>" alt="<?= e(site_name()) ?>" loading="lazy">
             </a>
             <div class="footer-brand-copy">
                 <h3><?= e(cms((string) setting('footer_brand_title', site_name()) ?: site_name())) ?></h3>
@@ -165,6 +165,6 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
     <span data-scroll-pct>0%</span>
 </button>
 <script src="<?= e(asset('assets/js/app.js')) ?>?v=21" defer></script>
-<script src="<?= e(asset('assets/js/prayer-times.js')) ?>?v=3" defer></script>
+<script src="<?= e(asset('assets/js/prayer-times.js')) ?>?v=4" defer></script>
 </body>
 </html>

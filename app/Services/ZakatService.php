@@ -26,16 +26,18 @@ final class ZakatService
             return $this->withConfig($cached, $cfg);
         }
 
+        $stored = HttpJson::read(PUBLIC_PATH . '/assets/data/zakat-spot.json');
+        $haveFallback = is_array($stored) && !empty($stored['gold_per_gram_inr']);
+
         try {
             $fresh = $this->fetchSpot($today);
             $this->persist($fresh);
             return $this->withConfig($fresh, $cfg);
         } catch (\Throwable) {
-            $stored = HttpJson::read(PUBLIC_PATH . '/assets/data/zakat-spot.json');
-            if (is_array($stored) && !empty($stored['gold_per_gram_inr'])) {
+            if ($haveFallback) {
                 $stored['ok'] = true;
                 $stored['stale'] = true;
-                $stored['error'] = 'Live metal prices could not be refreshed. Showing the last saved rates.';
+                $stored['error'] = null;
                 return $this->withConfig($stored, $cfg);
             }
             return $this->withConfig([
@@ -173,20 +175,20 @@ final class ZakatService
         $silverOz = 0.0;
         $usdInr = 0.0;
         try {
-            $gold = HttpJson::get('https://api.gold-api.com/price/XAU', 10, 2);
+            $gold = HttpJson::get('https://api.gold-api.com/price/XAU', 2, 1);
             $goldOz = (float) ($gold['price'] ?? 0);
         } catch (\Throwable) {
             $goldOz = 0.0;
         }
         try {
-            $silver = HttpJson::get('https://api.gold-api.com/price/XAG', 10, 2);
+            $silver = HttpJson::get('https://api.gold-api.com/price/XAG', 2, 1);
             $silverOz = (float) ($silver['price'] ?? 0);
         } catch (\Throwable) {
             $silverOz = 0.0;
         }
         if ($goldOz <= 0 || $silverOz <= 0) {
             try {
-                $spot = HttpJson::get('https://api.metals.live/v1/spot', 10, 2);
+                $spot = HttpJson::get('https://api.metals.live/v1/spot', 2, 1);
                 if (isset($spot[0]) && is_array($spot[0])) {
                     foreach ($spot as $row) {
                         if (!is_array($row)) {
@@ -219,14 +221,14 @@ final class ZakatService
             }
         }
         try {
-            $fx = HttpJson::get('https://api.frankfurter.app/latest?from=USD&to=INR', 10, 2);
+            $fx = HttpJson::get('https://api.frankfurter.app/latest?from=USD&to=INR', 2, 1);
             $usdInr = (float) ($fx['rates']['INR'] ?? 0);
         } catch (\Throwable) {
             $usdInr = 0.0;
         }
         if ($usdInr <= 0) {
             try {
-                $fx2 = HttpJson::get('https://open.er-api.com/v6/latest/USD', 10, 1);
+                $fx2 = HttpJson::get('https://open.er-api.com/v6/latest/USD', 2, 1);
                 $usdInr = (float) ($fx2['rates']['INR'] ?? 0);
             } catch (\Throwable) {
                 $usdInr = 0.0;

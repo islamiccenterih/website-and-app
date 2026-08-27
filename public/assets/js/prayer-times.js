@@ -187,9 +187,7 @@
     saved = null;
   }
   const start = saved && saved.name ? saved : currentCity();
-  if (start.name !== currentCity().name || start.state !== currentCity().state) {
-    loadTimes(start);
-  }
+  loadTimes(start);
 
   markNow();
   setInterval(() => {

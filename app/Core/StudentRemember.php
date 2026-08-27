@@ -45,6 +45,12 @@ final class StudentRemember
 
     public static function restoreIfNeeded(): void
     {
+        if (!empty($_COOKIE[self::COOKIE])) {
+            Session::start();
+        }
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return;
+        }
         $role = $_SESSION['auth']['role'] ?? '';
         if ($role === 'admin' || $role === 'student') {
             return;

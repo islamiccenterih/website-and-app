@@ -144,26 +144,16 @@ final class RamadanService
      */
     private function month(int $year, string $city, string $state): array
     {
-        $cacheKey = 'ramadan-' . md5(mb_strtolower($city . '|' . $state) . '|' . $year);
+        $cacheKey = 'ramadan-' . md5(mb_strtolower($city . '|' . $state) . '|' . $year . '|local');
         $cacheFile = STORAGE_PATH . '/cache/' . $cacheKey . '.json';
         $cached = HttpJson::read($cacheFile);
         if (is_array($cached) && !empty($cached['days']) && (int) ($cached['hijri_year'] ?? 0) === $year) {
             return $cached;
         }
 
-        $query = http_build_query([
-            'city' => $city,
-            'country' => 'India',
-            'state' => $state,
-            'method' => 1,
-            'school' => 1,
-        ]);
-        try {
-            $payload = HttpJson::get(
-                'https://api.aladhan.com/v1/hijriCalendarByCity/' . $year . '/9?' . $query,
-                12
-            );
-        } catch (\Throwable) {
+        $cal = new IslamicCalendarService();
+        $rawDays = $cal->hijriMonthDays($year, 9);
+        if ($rawDays === []) {
             return [
                 'ok' => false,
                 'error' => 'Sehri and Iftar times could not be loaded for this city. Try another city, or wait a moment.',
@@ -172,42 +162,42 @@ final class RamadanService
             ];
         }
 
-        $rows = $payload['data'] ?? [];
-        if (!is_array($rows) || $rows === []) {
-            return [
-                'ok' => false,
-                'error' => 'No Ramadan timetable was returned for this city.',
-                'hijri_year' => $year,
-                'days' => [],
-            ];
-        }
-
+        $tz = new \DateTimeZone('Asia/Kolkata');
+        $svc = new PrayerService();
         $days = [];
         $first = $last = '';
-        foreach ($rows as $item) {
+        foreach ($rawDays as $item) {
             if (!is_array($item)) {
                 continue;
             }
-            $timings = is_array($item['timings'] ?? null) ? $item['timings'] : [];
-            $date = is_array($item['date'] ?? null) ? $item['date'] : [];
-            $hijri = is_array($date['hijri'] ?? null) ? $date['hijri'] : [];
-            $greg = is_array($date['gregorian'] ?? null) ? $date['gregorian'] : [];
-            $hijriDay = (int) ($hijri['day'] ?? 0);
-            $gDay = (int) ($greg['day'] ?? 0);
-            $gMonth = (int) (($greg['month']['number'] ?? 0));
-            $gYear = (int) ($greg['year'] ?? 0);
-            $iso = $gYear && $gMonth && $gDay ? sprintf('%04d-%02d-%02d', $gYear, $gMonth, $gDay) : '';
-            $readable = trim((string) ($date['readable'] ?? ''));
+            $iso = $this->gregorianIso($item);
+            if ($iso === '') {
+                continue;
+            }
+            try {
+                $when = new \DateTimeImmutable($iso . ' 12:00:00', $tz);
+            } catch (\Throwable) {
+                continue;
+            }
+            $prayer = $svc->forDate($city, $state, $when);
+            $hijriDay = (int) ($item['hijri_day'] ?? 0);
+            $readable = trim((string) ($item['gregorian_month_en'] ?? '') . ' ' . (int) ($item['gregorian_day'] ?? 0) . ', ' . (int) ($item['gregorian_year'] ?? 0));
+            if (!empty($item['gregorian_date']) && preg_match('/^(\d{1,2})-(\d{1,2})-(\d{4})$/', (string) $item['gregorian_date'], $m)) {
+                try {
+                    $readable = (new \DateTimeImmutable(sprintf('%04d-%02d-%02d', (int) $m[3], (int) $m[2], (int) $m[1]), $tz))->format('j F Y');
+                } catch (\Throwable) {
+                }
+            }
             $row = [
                 'hijri_day' => $hijriDay,
                 'hijri_label' => $hijriDay . ' Ramadan ' . $year,
                 'gregorian_iso' => $iso,
-                'gregorian_label' => $readable !== '' ? $readable : trim($gDay . ' ' . ($greg['month']['en'] ?? '') . ' ' . $gYear),
-                'weekday' => (string) ($greg['weekday']['en'] ?? ''),
-                'imsak' => $this->formatTime((string) ($timings['Imsak'] ?? '')),
-                'fajr' => $this->formatTime((string) ($timings['Fajr'] ?? '')),
-                'maghrib' => $this->formatTime((string) ($timings['Maghrib'] ?? '')),
-                'isha' => $this->formatTime((string) ($timings['Isha'] ?? '')),
+                'gregorian_label' => $readable,
+                'weekday' => (string) ($item['weekday_en'] ?? $when->format('l')),
+                'imsak' => (string) ($prayer['imsak'] ?? ''),
+                'fajr' => (string) ($prayer['fajr'] ?? ''),
+                'maghrib' => (string) ($prayer['maghrib'] ?? ''),
+                'isha' => (string) ($prayer['isha'] ?? ''),
             ];
             if ($first === '') {
                 $first = $row['gregorian_label'];
@@ -263,6 +253,22 @@ final class RamadanService
         } catch (\Throwable) {
             return 0;
         }
+    }
+
+    /**
+     * @param array<string, mixed> $day
+     */
+    private function gregorianIso(array $day): string
+    {
+        $date = (string) ($day['gregorian_date'] ?? '');
+        if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{4})$/', $date, $m)) {
+            return sprintf('%04d-%02d-%02d', (int) $m[3], (int) $m[2], (int) $m[1]);
+        }
+        $y = (int) ($day['gregorian_year'] ?? 0);
+        $mo = (int) ($day['gregorian_month'] ?? 0);
+        $d = (int) ($day['gregorian_day'] ?? 0);
+
+        return $y && $mo && $d ? sprintf('%04d-%02d-%02d', $y, $mo, $d) : '';
     }
 
     private function formatTime(string $raw): string

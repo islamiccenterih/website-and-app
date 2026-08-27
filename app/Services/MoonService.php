@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 /**
- * Moon data adapter.
- * Default providers (no API key required):
- *  - AlAdhan (Hijri date): https://api.aladhan.com
- *  - sunrisesunset.io (moonrise/moonset/phase)
+ * Moon phase, rise/set, and Hijri date — computed on the server every day.
  */
 final class MoonService
 {
@@ -26,9 +23,8 @@ final class MoonService
             $timezone = 'Asia/Kolkata';
         }
         $today = (new \DateTimeImmutable('now', $tz))->format('Y-m-d');
-        $weekEnd = (new \DateTimeImmutable('now', $tz))->modify('+6 days')->format('Y-m-d');
 
-        $cacheKey = 'moon-' . md5($lat . '|' . $lng . '|' . $today . '|week');
+        $cacheKey = 'moon-' . md5($lat . '|' . $lng . '|' . $today . '|local');
         $now = new \DateTimeImmutable('now', $tz);
         $untilMidnight = max(60, $now->modify('tomorrow')->setTime(0, 0)->getTimestamp() - $now->getTimestamp());
         $cached = $this->cacheGet($cacheKey, $today, $untilMidnight);
@@ -36,91 +32,46 @@ final class MoonService
             return $cached;
         }
 
+        $hijriToday = (new IslamicCalendarService())->todayHijri();
+        $sky = LocalMoon::forDay($lat, $lng, $now);
+        $week = [];
+        for ($i = 0; $i < 7; $i++) {
+            $day = $now->modify('+' . $i . ' days')->setTime(12, 0);
+            $row = LocalMoon::forDay($lat, $lng, $day);
+            $week[] = [
+                'date' => $row['date'],
+                'label' => $day->format('D'),
+                'daynum' => $day->format('j'),
+                'is_today' => $row['date'] === $today,
+                'phase' => $row['phase'],
+                'illumination' => $row['illumination'],
+                'phase_value' => $row['phase_value'],
+            ];
+        }
+
         $result = [
-            'ok' => false,
+            'ok' => true,
             'error' => null,
-            'gregorian' => (new \DateTimeImmutable('now', $tz))->format('l, j F Y'),
-            'hijri' => null,
-            'moon' => null,
-            'week' => [],
+            'gregorian' => $now->format('l, j F Y'),
+            'hijri' => [
+                'date' => sprintf('%02d-%02d-%04d', (int) $hijriToday['day'], (int) $hijriToday['month'], (int) $hijriToday['year']),
+                'day' => (string) $hijriToday['day'],
+                'month_en' => $hijriToday['month_en'],
+                'month_ar' => $hijriToday['month_ar'],
+                'year' => (string) $hijriToday['year'],
+                'weekday_en' => $hijriToday['weekday'],
+                'weekday_ar' => '',
+                'holidays' => [],
+            ],
+            'moon' => $sky,
+            'week' => $week,
             'location_label' => $label,
             'timezone' => $timezone,
             'for_date' => $today,
             'fetched_at' => date('c'),
         ];
-
-        try {
-            $hijri = HttpJson::get(
-                'https://api.aladhan.com/v1/gToH?date=' . (new \DateTimeImmutable('now', $tz))->format('d-m-Y'),
-                10,
-                2
-            );
-            if (($hijri['code'] ?? 0) === 200 && isset($hijri['data']['hijri'])) {
-                $h = $hijri['data']['hijri'];
-                $g = $hijri['data']['gregorian'] ?? [];
-                $result['hijri'] = [
-                    'date' => $h['date'] ?? '',
-                    'day' => $h['day'] ?? '',
-                    'month_en' => $h['month']['en'] ?? '',
-                    'month_ar' => $h['month']['ar'] ?? '',
-                    'year' => $h['year'] ?? '',
-                    'weekday_en' => $h['weekday']['en'] ?? '',
-                    'weekday_ar' => $h['weekday']['ar'] ?? '',
-                    'holidays' => $h['holidays'] ?? [],
-                ];
-                if (!empty($g['date'])) {
-                    $result['gregorian'] = trim(
-                        ($g['weekday']['en'] ?? '') . ', ' . ($g['day'] ?? '') . ' ' . ($g['month']['en'] ?? '') . ' ' . ($g['year'] ?? '')
-                    );
-                }
-            }
-
-            $days = $this->fetchSkyDays($lat, $lng, $timezone, $today, $weekEnd);
-            $week = [];
-            foreach ($days as $row) {
-                $sky = $this->mapSky($row);
-                $date = (string) ($sky['date'] ?? '');
-                $ts = $date !== '' ? strtotime($date) : false;
-                $week[] = [
-                    'date' => $date,
-                    'label' => $ts ? date('D', $ts) : '',
-                    'daynum' => $ts ? date('j', $ts) : '',
-                    'is_today' => $date === $today,
-                    'phase' => $sky['phase'],
-                    'illumination' => $sky['illumination'],
-                    'phase_value' => $sky['phase_value'],
-                ];
-                if ($date === $today) {
-                    $result['moon'] = $sky;
-                }
-            }
-            $result['week'] = $week;
-            if ($result['moon'] === null && $days !== []) {
-                $result['moon'] = $this->mapSky($days[0]);
-            }
-
-            $result['ok'] = $result['hijri'] !== null || $result['moon'] !== null;
-            if (!$result['ok']) {
-                $stale = $this->cacheStale($cacheKey);
-                if ($stale !== null) {
-                    $stale['stale'] = true;
-                    $stale['error'] = null;
-                    return $stale;
-                }
-                $result['error'] = 'Moon timing data is temporarily unavailable. Please try again later.';
-            } else {
-                $this->cacheSet($cacheKey, $result);
-                $this->forgetOldCaches($cacheKey);
-            }
-        } catch (\Throwable) {
-            $stale = $this->cacheStale($cacheKey);
-            if ($stale !== null) {
-                $stale['stale'] = true;
-                $stale['error'] = null;
-                return $stale;
-            }
-            $result['error'] = 'Moon timing data is temporarily unavailable. Please try again later.';
-        }
+        $this->cacheSet($cacheKey, $result);
+        $this->forgetOldCaches($cacheKey);
 
         return $result;
     }

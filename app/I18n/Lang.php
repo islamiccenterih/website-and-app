@@ -28,7 +28,10 @@ final class Lang
         if (is_string($fromCookie) && isset(self::LOCALES[$fromCookie])) {
             $code = $fromCookie;
         }
-        $fromSession = $_SESSION['lang'] ?? '';
+        $fromSession = '';
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $fromSession = $_SESSION['lang'] ?? '';
+        }
         if (is_string($fromSession) && isset(self::LOCALES[$fromSession])) {
             $code = $fromSession;
         }
@@ -43,6 +46,7 @@ final class Lang
         }
         self::$code = $code;
         self::$map = null;
+        \App\Core\Session::start();
         $_SESSION['lang'] = $code;
         $secure = request_is_https();
         setcookie(self::COOKIE, $code, [

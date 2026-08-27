@@ -189,7 +189,7 @@ final class IslamicCalendarService
         }
 
         try {
-            $payload = HttpJson::get('https://api.aladhan.com/v1/gToH?date=' . $now->format('d-m-Y'), 10, 2);
+            $payload = HttpJson::get('https://api.aladhan.com/v1/gToH?date=' . $now->format('d-m-Y'), 2, 1);
             $h = $payload['data']['hijri'] ?? [];
             $g = $payload['data']['gregorian'] ?? [];
             $result = [
@@ -210,8 +210,8 @@ final class IslamicCalendarService
             $this->writeJson($cacheFile, $result);
             return $result;
         } catch (\Throwable) {
-            return [
-                'day' => 11,
+            $fallback = [
+                'day' => (int) $now->format('j'),
                 'month' => 3,
                 'year' => 1448,
                 'month_en' => self::MONTH_EN[3],
@@ -220,7 +220,27 @@ final class IslamicCalendarService
                 'gregorian_label' => $now->format('l, j F Y'),
                 'weekday' => $now->format('l'),
             ];
+            return $found ?? $fallback;
         }
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function hijriMonthDays(int $year, int $month): array
+    {
+        $raw = $this->loadMonth($year, $month);
+        if (!is_array($raw) || !is_array($raw['days'] ?? null)) {
+            return [];
+        }
+        $days = [];
+        foreach ($raw['days'] as $day) {
+            if (is_array($day)) {
+                $days[] = $day;
+            }
+        }
+
+        return $days;
     }
 
     /**
@@ -289,7 +309,7 @@ final class IslamicCalendarService
     private function fetchMonth(int $year, int $month): ?array
     {
         try {
-            $payload = HttpJson::get('https://api.aladhan.com/v1/hToGCalendar/' . $month . '/' . $year, 12, 2);
+            $payload = HttpJson::get('https://api.aladhan.com/v1/hToGCalendar/' . $month . '/' . $year, 2, 1);
         } catch (\Throwable) {
             return null;
         }

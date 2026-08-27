@@ -41,7 +41,7 @@ $pillars = [
     <?php if ($heroImage): ?>
         <img class="hero-photo" src="<?= e($heroImage) ?>" alt="">
     <?php else: ?>
-    <video id="hero-video" class="hero-video" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="<?= e($heroPoster) ?>" aria-hidden="true">
+    <video id="hero-video" class="hero-video" autoplay muted loop playsinline webkit-playsinline preload="metadata" poster="<?= e($heroPoster) ?>" aria-hidden="true">
         <source src="<?= e($heroVideo) ?>" type="video/mp4">
     </video>
     <?php endif; ?>

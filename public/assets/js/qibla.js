@@ -420,6 +420,19 @@
     el.addEventListener('click', fn);
   }
 
+  if (qibla) {
+    paintQibla({
+      qibla: qibla,
+      distance_km: parseFloat(root.getAttribute('data-qibla-km') || '') || null,
+      compass: root.getAttribute('data-qibla-compass-name') || '',
+      label: root.getAttribute('data-qibla-label') || '',
+    });
+    locOk = false;
+    if (placeEl && root.getAttribute('data-qibla-label')) {
+      placeEl.textContent = root.getAttribute('data-qibla-label') + ' (center). Phone GPS se apna Qibla set karein.';
+    }
+  }
+
   on(root.querySelector('[data-qibla-locate]'), function () { locate(true); });
   on(startBtn, unlock);
   on(invertBtn, toggleInvert);

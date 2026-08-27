@@ -1,6 +1,9 @@
 <div class="qibla-page" data-qibla-root
     data-api="<?= e(url('/api/qibla')) ?>"
-    data-qibla="">
+    data-qibla="<?= e((string) ($qibla['qibla'] ?? '')) ?>"
+    data-qibla-km="<?= e((string) ($qibla['distance_km'] ?? '')) ?>"
+    data-qibla-label="<?= e((string) ($qibla['label'] ?? '')) ?>"
+    data-qibla-compass-name="<?= e((string) ($qibla['compass'] ?? '')) ?>">
 <section class="page-hero">
     <div class="container">
         <?php
@@ -50,9 +53,9 @@
             <div class="qibla-meta">
                 <p class="qibla-status" data-qibla-status>Pehle upar Start compass dabayein aur Location Allow karein. Kaaba tab aapki asl jagah se set hoga — Firozabad ka rukh aapka Qibla nahi hai.</p>
                 <dl class="qibla-stats">
-                    <div><dt>Qibla from true north</dt><dd data-qibla-bearing>—</dd></div>
-                    <div><dt>Distance to Makkah</dt><dd data-qibla-km>—</dd></div>
-                    <div><dt>Your place</dt><dd data-qibla-place>Waiting for GPS…</dd></div>
+                    <div><dt>Qibla from true north</dt><dd data-qibla-bearing><?= !empty($qibla['qibla']) ? e(number_format((float) $qibla['qibla'], 2) . '°') : '—' ?></dd></div>
+                    <div><dt>Distance to Makkah</dt><dd data-qibla-km><?= isset($qibla['distance_km']) ? e(number_format((float) $qibla['distance_km'], 1) . ' km') : '—' ?></dd></div>
+                    <div><dt>Your place</dt><dd data-qibla-place><?= e((string) ($qibla['label'] ?? 'Waiting for GPS…')) ?></dd></div>
                 </dl>
                 <div class="qibla-actions">
                     <button class="btn btn-walnut" type="button" data-qibla-locate><?= e(tt('Use my location')) ?></button>
@@ -64,4 +67,4 @@
     </div>
 </section>
 </div>
-<script src="<?= e(asset('assets/js/qibla.js')) ?>?v=9" defer></script>
+<script src="<?= e(asset('assets/js/qibla.js')) ?>?v=10" defer></script>
