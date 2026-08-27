@@ -175,8 +175,8 @@ final class SitePages
                 'url' => '/privacy-policy',
                 'module' => 'pages',
                 'copy' => 'privacy',
-                'fields' => ['kicker', 'title', 'lead'],
-                'blurb' => 'Privacy policy heading and introduction. The full legal text is on the public page.',
+                'fields' => ['kicker', 'title', 'lead', 'updated', 'body'],
+                'blurb' => 'Privacy policy heading and the full legal text visitors read on the website.',
                 'actions' => [],
             ],
             'terms' => [
@@ -184,8 +184,8 @@ final class SitePages
                 'url' => '/terms-and-conditions',
                 'module' => 'pages',
                 'copy' => 'terms',
-                'fields' => ['kicker', 'title', 'lead'],
-                'blurb' => 'Terms heading and introduction. The full legal text is on the public page.',
+                'fields' => ['kicker', 'title', 'lead', 'updated', 'body'],
+                'blurb' => 'Terms heading and the full legal text visitors read on the website.',
                 'actions' => [],
             ],
             'disclaimer' => [
@@ -193,8 +193,8 @@ final class SitePages
                 'url' => '/disclaimer',
                 'module' => 'pages',
                 'copy' => 'disclaimer',
-                'fields' => ['kicker', 'title', 'lead'],
-                'blurb' => 'Disclaimer heading and introduction. The full legal text is on the public page.',
+                'fields' => ['kicker', 'title', 'lead', 'updated', 'body'],
+                'blurb' => 'Disclaimer heading and the full legal text visitors read on the website.',
                 'actions' => [],
             ],
         ];
@@ -325,6 +325,10 @@ final class SitePages
             }
         }
         foreach ($out as $field => $text) {
+            if (in_array((string) $field, ['body', 'updated'], true)) {
+                $out[$field] = (string) $text;
+                continue;
+            }
             $out[$field] = ftc((string) $text);
         }
         return $out;
@@ -440,16 +444,22 @@ final class SitePages
                 'kicker' => 'Your information',
                 'title' => 'Privacy Policy',
                 'lead' => 'What this website collects, why we keep it, and how you can ask for a copy or a correction.',
+                'updated' => \App\Services\LegalContent::UPDATED,
+                'body' => \App\Services\LegalContent::bodyText('privacy'),
             ],
             'terms' => [
                 'kicker' => 'Using this website',
                 'title' => 'Terms & Conditions',
                 'lead' => 'The rules for using this website, student login, live classes, and Live now.',
+                'updated' => \App\Services\LegalContent::UPDATED,
+                'body' => \App\Services\LegalContent::bodyText('terms'),
             ],
             'disclaimer' => [
                 'kicker' => 'Please read',
                 'title' => 'Disclaimer',
                 'lead' => 'Limits of fatawa, prayer times, qibla, zakat estimates, and live streams on this website.',
+                'updated' => \App\Services\LegalContent::UPDATED,
+                'body' => \App\Services\LegalContent::bodyText('disclaimer'),
             ],
         ];
         return $all[$copyKey] ?? [];
@@ -491,6 +501,8 @@ final class SitePages
             'archive_kicker' => 'Previous items tag',
             'archive_title' => 'Previous items heading',
             'detail_lead' => 'Detail page introduction',
+            'updated' => 'Last updated date',
+            'body' => 'Full page text',
         ];
     }
 

@@ -21,19 +21,28 @@ $copyKey = (string) ($doc['key'] ?? 'privacy');
 <section class="section legal-section">
     <div class="container legal-layout">
         <?php if ($sections): ?>
+            <?php
+            $toc = array_values(array_filter($sections, static function (array $section): bool {
+                return trim((string) ($section['title'] ?? '')) !== '';
+            }));
+            ?>
+            <?php if ($toc): ?>
             <nav class="legal-toc" aria-label="<?= e(tt('On this page')) ?>">
                 <h2><?= e(tt('On this page')) ?></h2>
                 <ul>
-                    <?php foreach ($sections as $section): ?>
+                    <?php foreach ($toc as $section): ?>
                         <li><a href="#<?= e((string) ($section['id'] ?? '')) ?>"><?= e(tt((string) ($section['title'] ?? ''))) ?></a></li>
                     <?php endforeach; ?>
                 </ul>
             </nav>
+            <?php endif; ?>
         <?php endif; ?>
         <article class="legal-doc prose">
             <p class="legal-lang-note"><?= e(tt('This page is the official English text. If a translated heading differs, the English wording applies.')) ?></p>
             <?php foreach ($sections as $section): ?>
-                <h2 id="<?= e((string) ($section['id'] ?? '')) ?>"><?= e(tt((string) ($section['title'] ?? ''))) ?></h2>
+                <?php if (trim((string) ($section['title'] ?? '')) !== ''): ?>
+                    <h2 id="<?= e((string) ($section['id'] ?? '')) ?>"><?= e(tt((string) ($section['title'] ?? ''))) ?></h2>
+                <?php endif; ?>
                 <?php foreach (is_array($section['paragraphs'] ?? null) ? $section['paragraphs'] : [] as $para): ?>
                     <p><?= e((string) $para) ?></p>
                 <?php endforeach; ?>

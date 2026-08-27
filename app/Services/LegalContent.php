@@ -37,6 +37,134 @@ final class LegalContent
         return array_values(array_filter($all, static fn (array $row): bool => $row['key'] !== $key));
     }
 
+    /**
+     * Catalog page plus admin-saved body (## headings, blank line between paragraphs).
+     *
+     * @return array{key:string,path:string,kicker:string,title:string,lead:string,meta:string,updated:string,sections:list<array{id:string,title:string,paragraphs:list<string>}>}
+     */
+    public static function resolved(string $key): array
+    {
+        $doc = self::page($key);
+        $stored = json_setting('page_copy');
+        $row = is_array($stored[$key] ?? null) ? $stored[$key] : [];
+        $body = trim((string) ($row['body'] ?? ''));
+        if ($body !== '') {
+            $sections = self::parseBody($body);
+            if ($sections !== []) {
+                $doc['sections'] = $sections;
+            }
+        }
+        $updated = trim((string) ($row['updated'] ?? ''));
+        $doc['updated'] = $updated !== '' ? $updated : self::UPDATED;
+        return $doc;
+    }
+
+    public static function bodyText(string $key): string
+    {
+        $chunks = [];
+        foreach (self::page($key)['sections'] as $section) {
+            $title = trim((string) ($section['title'] ?? ''));
+            if ($title !== '') {
+                $chunks[] = '## ' . $title;
+            }
+            foreach (is_array($section['paragraphs'] ?? null) ? $section['paragraphs'] : [] as $para) {
+                $para = trim((string) $para);
+                if ($para !== '') {
+                    $chunks[] = $para;
+                }
+            }
+        }
+        return implode("\n\n", $chunks);
+    }
+
+    /**
+     * @return list<array{id:string,title:string,paragraphs:list<string>}>
+     */
+    public static function parseBody(string $body): array
+    {
+        $body = trim(str_replace("\r\n", "\n", $body));
+        if ($body === '') {
+            return [];
+        }
+        $sections = [];
+        $current = null;
+        $paraLines = [];
+        $usedIds = [];
+
+        $flushPara = static function () use (&$current, &$paraLines): void {
+            $text = trim(implode("\n", $paraLines));
+            $paraLines = [];
+            if ($text === '' || $current === null) {
+                return;
+            }
+            $current['paragraphs'][] = $text;
+        };
+
+        $pushSection = static function () use (&$sections, &$current, $flushPara): void {
+            $flushPara();
+            if ($current !== null) {
+                $sections[] = $current;
+            }
+            $current = null;
+        };
+
+        foreach (explode("\n", $body) as $line) {
+            if (preg_match('/^##\s+(.+)$/u', trim($line), $match) === 1) {
+                $pushSection();
+                $title = trim((string) $match[1]);
+                $id = self::headingId($title, $usedIds);
+                $current = [
+                    'id' => $id,
+                    'title' => $title,
+                    'paragraphs' => [],
+                ];
+                continue;
+            }
+            if (trim($line) === '') {
+                $flushPara();
+                continue;
+            }
+            if ($current === null) {
+                $id = self::headingId('intro', $usedIds);
+                $current = [
+                    'id' => $id,
+                    'title' => '',
+                    'paragraphs' => [],
+                ];
+            }
+            $paraLines[] = $line;
+        }
+        $pushSection();
+        return $sections;
+    }
+
+    /**
+     * @param array<string, true> $usedIds
+     */
+    private static function headingId(string $title, array &$usedIds): string
+    {
+        $slug = strtolower($title);
+        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? '';
+        $slug = trim($slug, '-');
+        if ($slug === '') {
+            $slug = 'section';
+        }
+        $id = $slug;
+        $n = 2;
+        while (isset($usedIds[$id])) {
+            $id = $slug . '-' . $n;
+            $n++;
+        }
+        $usedIds[$id] = true;
+        return $id;
+    }
+
+    public static function isoDate(string $updated): string
+    {
+        $ts = strtotime($updated);
+        return $ts !== false ? date('Y-m-d', $ts) : '2026-08-27';
+    }
+
     private static function org(): string
     {
         return site_name();

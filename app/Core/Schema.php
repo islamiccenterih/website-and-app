@@ -388,6 +388,11 @@ final class Schema
         self::once('schema-public-live-v2.ok', static function (): void {
             self::applyFile(ROOT_PATH . '/database/migrate_public_live_comments.sql');
         });
+        self::once('schema-settings-mediumtext-v1.ok', static function (): void {
+            Database::get()->pdo()->exec(
+                'ALTER TABLE `settings` MODIFY `setting_value` MEDIUMTEXT'
+            );
+        });
     }
 
     private static function once(string $flagName, callable $work): void

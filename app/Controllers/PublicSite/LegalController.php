@@ -26,7 +26,7 @@ final class LegalController extends Controller
 
     private function show(string $key): void
     {
-        $doc = LegalContent::page($key);
+        $doc = LegalContent::resolved($key);
         $this->view('public/legal', [
             'pageTitle' => page_copy($key, 'title', $doc['title']) . ' — ' . site_name(),
             'metaDescription' => page_copy($key, 'lead', $doc['meta']),
@@ -36,7 +36,7 @@ final class LegalController extends Controller
                 '@type' => 'WebPage',
                 'name' => $doc['title'],
                 'url' => absolute_url($doc['path']),
-                'dateModified' => '2026-08-27',
+                'dateModified' => LegalContent::isoDate((string) ($doc['updated'] ?? LegalContent::UPDATED)),
                 'isPartOf' => [
                     '@type' => 'EducationalOrganization',
                     'name' => site_name(),
@@ -45,7 +45,7 @@ final class LegalController extends Controller
             ],
             'doc' => $doc,
             'others' => LegalContent::siblings($key),
-            'updated' => LegalContent::UPDATED,
+            'updated' => (string) ($doc['updated'] ?? LegalContent::UPDATED),
         ]);
     }
 }

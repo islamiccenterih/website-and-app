@@ -227,7 +227,7 @@ CREATE TABLE IF NOT EXISTS `programs` (
 CREATE TABLE IF NOT EXISTS `settings` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `setting_key` VARCHAR(80) NOT NULL,
-  `setting_value` TEXT,
+  `setting_value` MEDIUMTEXT,
   `updated_at` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `settings_key` (`setting_key`)

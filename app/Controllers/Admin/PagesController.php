@@ -36,7 +36,11 @@ final class PagesController extends BaseController
             $all[$page] = [];
         }
         foreach ($fields as $key => $value) {
-            $all[$page][$key] = faith_terms_store(trim((string) $value));
+            $text = trim((string) $value);
+            if (!in_array((string) $key, ['body', 'updated'], true)) {
+                $text = faith_terms_store($text);
+            }
+            $all[$page][$key] = $text;
         }
         Setting::put('page_copy', json_encode($all, JSON_UNESCAPED_UNICODE));
     }

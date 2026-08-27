@@ -4040,6 +4040,10 @@ html[dir="rtl"] .compose-resize-handle { cursor: nesw-resize; }
 .dash-body .field textarea {
   unicode-bidi: plaintext;
 }
+.dash-body .field textarea.legal-body {
+  min-height: 28rem;
+  line-height: 1.55;
+}
 
 @media (max-width: 720px) {
   .page-editor-head { flex-direction: column; }
