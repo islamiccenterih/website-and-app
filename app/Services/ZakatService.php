@@ -221,10 +221,18 @@ final class ZakatService
             }
         }
         try {
-            $fx = HttpJson::get('https://api.frankfurter.app/latest?from=USD&to=INR', 2, 1);
+            $fx = HttpJson::get('https://api.frankfurter.dev/v1/latest?from=USD&to=INR', 2, 1);
             $usdInr = (float) ($fx['rates']['INR'] ?? 0);
         } catch (\Throwable) {
             $usdInr = 0.0;
+        }
+        if ($usdInr <= 0) {
+            try {
+                $fx = HttpJson::get('https://api.frankfurter.app/latest?from=USD&to=INR', 2, 1);
+                $usdInr = (float) ($fx['rates']['INR'] ?? 0);
+            } catch (\Throwable) {
+                $usdInr = 0.0;
+            }
         }
         if ($usdInr <= 0) {
             try {
@@ -246,7 +254,7 @@ final class ZakatService
             'stale' => false,
             'for_date' => $today,
             'fetched_at' => gmdate('c'),
-            'source' => 'gold-api.com + frankfurter.app',
+            'source' => 'gold-api.com + frankfurter.dev',
             'gold_usd_oz' => round($goldOz, 4),
             'silver_usd_oz' => round($silverOz, 4),
             'usd_inr' => round($usdInr, 4),

@@ -1,8 +1,5 @@
 <?php
 $spot = is_array($spot ?? null) ? $spot : [];
-$fmt = static function (float $n): string {
-    return '₹' . number_format($n, 2);
-};
 ?>
 <section class="page-hero">
     <div class="container">
@@ -28,25 +25,21 @@ $fmt = static function (float $n): string {
         <div class="zakat-nisab">
             <article>
                 <span><?= e(ft('Gold nisab')) ?> (<?= e((string) ($spot['gold_nisab_g'] ?? '87.48')) ?> g · 7.5 tola)</span>
-                <strong data-gold-nisab><?= e($fmt((float) ($spot['gold_nisab_inr'] ?? 0))) ?></strong>
-                <em data-gold-10g><?= e($fmt((float) ($spot['gold_per_10g_inr'] ?? 0))) ?> / 10g 24k</em>
+                <strong data-gold-nisab>Loading live rate…</strong>
+                <em data-gold-10g>Waiting for today’s gold price</em>
             </article>
             <article>
                 <span><?= e(ft('Silver nisab')) ?> (<?= e((string) ($spot['silver_nisab_g'] ?? '612.36')) ?> g · 52.5 tola)</span>
-                <strong data-silver-nisab><?= e($fmt((float) ($spot['silver_nisab_inr'] ?? 0))) ?></strong>
-                <em data-silver-kg><?= e($fmt((float) ($spot['silver_per_kg_inr'] ?? 0))) ?> / kg</em>
+                <strong data-silver-nisab>Loading live rate…</strong>
+                <em data-silver-kg>Waiting for today’s silver price</em>
             </article>
             <article>
                 <span>Live metal rates</span>
-                <strong data-spot-date data-spot-clock><?= e((string) ($spot['for_date'] ?? '')) ?></strong>
-                <em data-spot-note><?= !empty($spot['stale']) ? 'Connecting to live gold &amp; silver…' : 'Live spot · India (INR)' ?></em>
+                <strong data-spot-date data-spot-clock>—</strong>
+                <em data-spot-note>Connecting to live gold &amp; silver…</em>
             </article>
         </div>
-        <?php if (!empty($spot['error'])): ?>
-            <p class="salah-error" data-zakat-error><?= e((string) $spot['error']) ?></p>
-        <?php else: ?>
             <p class="salah-error" hidden data-zakat-error></p>
-        <?php endif; ?>
 
         <form class="zakat-form" data-zakat-form>
             <div class="zakat-grid">
@@ -83,4 +76,4 @@ $fmt = static function (float $n): string {
         </aside>
     </div>
 </section>
-<script src="<?= e(asset('assets/js/zakat.js')) ?>?v=4" defer></script>
+<script src="<?= e(asset('assets/js/zakat.js')) ?>?v=5" defer></script>

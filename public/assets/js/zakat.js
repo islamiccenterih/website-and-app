@@ -17,8 +17,10 @@
     return data;
   };
 
+  const isLiveSpot = (spot) => !!(spot && spot.ok && spot.live && !spot.stale);
+
   const paintNisab = (spot) => {
-    if (!spot || !spot.ok) return;
+    if (!isLiveSpot(spot)) return;
     const gold = root.querySelector('[data-gold-nisab]');
     const silver = root.querySelector('[data-silver-nisab]');
     const g10 = root.querySelector('[data-gold-10g]');
@@ -30,15 +32,17 @@
     if (g10) g10.textContent = rupee(spot.gold_per_10g_inr) + ' / 10g 24k';
     if (sKg) sKg.textContent = rupee(spot.silver_per_kg_inr) + ' / kg';
     if (date) date.textContent = lastFetchAt ? istClock(lastFetchAt) : (spot.for_date || '');
-    if (note) note.textContent = spot.stale ? 'Saved rates · live feed reconnecting…' : 'Live gold & silver · INR · refreshes every 10s';
+    if (note) note.textContent = 'Live gold & silver · INR · refreshes every 10s';
     if (errorBox) {
-      if (spot.error) {
-        errorBox.hidden = false;
-        errorBox.textContent = spot.error;
-      } else {
-        errorBox.hidden = true;
-      }
+      errorBox.hidden = true;
+      errorBox.textContent = '';
     }
+  };
+
+  const showWait = (message) => {
+    if (!errorBox) return;
+    errorBox.hidden = false;
+    errorBox.textContent = message;
   };
 
   const paintCalc = (data) => {
@@ -82,7 +86,7 @@
   const paintClock = () => {
     if (!clockEl || !lastFetchAt) return;
     clockEl.textContent = istClock(lastFetchAt);
-    if (noteEl && liveSpot && liveSpot.ok && !liveSpot.stale) {
+    if (noteEl && isLiveSpot(liveSpot)) {
       noteEl.textContent = 'Live gold & silver · INR · refreshes every 10s';
     }
   };
@@ -102,15 +106,15 @@
     const goldNisab = spot.gold_nisab_inr || 0;
     const silverNisab = spot.silver_nisab_inr || 0;
     const nisab = method === 'gold' ? goldNisab : (method === 'silver' ? silverNisab : Math.min(goldNisab, silverNisab) || Math.max(goldNisab, silverNisab));
-    const due = net >= nisab && nisab > 0;
-    const zakat = due ? Math.round(net * (rate / 100) * 100) / 100 : 0;
+    const dueNow = net >= nisab && nisab > 0;
+    const zakat = dueNow ? Math.round(net * (rate / 100) * 100) / 100 : 0;
     return {
       ok: true,
       assets,
       debts,
       net,
       nisab,
-      above_nisab: due,
+      above_nisab: dueNow,
       rate,
       zakat,
       lines: [
@@ -128,18 +132,15 @@
     };
   };
 
+  const hasInput = () => form && [...form.querySelectorAll('input,select')].some((el) => el.value && el.value !== '0' && el.value !== '24');
+
   const calculate = () => {
-    const input = payload();
-    if (liveSpot && liveSpot.ok) {
-      paintCalc(calcLocal(liveSpot, input));
-      return Promise.resolve();
+    if (!isLiveSpot(liveSpot)) {
+      if (result) result.hidden = true;
+      showWait('Live gold and silver prices are still loading. Zakat will be calculated only after today’s rates arrive — old rates are not used.');
+      return;
     }
-    const calcUrl = root.getAttribute('data-calc-url') || '/api/zakat/calculate';
-    return fetch(calcUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(input),
-    }).then((res) => res.json()).then(paintCalc);
+    paintCalc(calcLocal(liveSpot, payload()));
   };
 
   form?.addEventListener('submit', (event) => {
@@ -151,37 +152,42 @@
     form._t = window.setTimeout(calculate, 350);
   });
 
-  const nisabUrl = root.getAttribute('data-nisab-url') || '/api/zakat/nisab';
   const loadNisab = () => {
     if (fetching) return Promise.resolve();
     fetching = true;
     const apply = (spot) => {
       fetching = false;
-      if (!spot || !spot.ok) return;
+      if (!isLiveSpot(spot)) {
+        showWait('Live gold and silver could not be confirmed. Zakat will not use a saved or yesterday’s rate.');
+        return;
+      }
       const changed = !liveSpot || Number(liveSpot.gold_per_gram_inr) !== Number(spot.gold_per_gram_inr)
         || Number(liveSpot.silver_per_gram_inr) !== Number(spot.silver_per_gram_inr);
       liveSpot = spot;
       lastFetchAt = Date.now();
       paintNisab(spot);
       paintClock();
-      if (changed && form && [...form.querySelectorAll('input,select')].some((el) => el.value)) {
-        calculate();
+      if (changed && hasInput()) calculate();
+    };
+    const fail = () => {
+      fetching = false;
+      if (!isLiveSpot(liveSpot)) {
+        showWait('Live gold and silver could not be loaded. Check your connection — zakat will not be shown from old rates.');
       }
     };
-    const fail = () => { fetching = false; };
-    const localApi = () => fetch(nisabUrl, { headers: { Accept: 'application/json' } })
-      .then((res) => res.json())
-      .then(apply)
-      .catch(fail);
     if (window.ICLive && typeof ICLive.metalSpot === 'function') {
       return ICLive.metalSpot({ gold_nisab_g: goldG, silver_nisab_g: silverG, rate, nisab_method: method })
         .then(apply)
-        .catch(localApi);
+        .catch(fail);
     }
-    return localApi();
+    fail();
+    return Promise.resolve();
   };
 
   loadNisab();
   setInterval(loadNisab, 10000);
   setInterval(paintClock, 1000);
+  if (window.ICLive && typeof ICLive.watchFresh === 'function') {
+    ICLive.watchFresh(loadNisab, 8000);
+  }
 })();

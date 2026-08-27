@@ -48,7 +48,7 @@ $icon = '<svg viewBox="0 0 31 30" aria-hidden="true"><path d="M25 15.3A9.5 9.5 0
             </div>
             <p class="salah-meta" data-prayer-meta>
                 <?= e((string) ($prayer['weekday'] ?? '')) ?><?= !empty($prayer['date']) ? ' · ' . e((string) $prayer['date']) : '' ?>
-                · Live for India
+                · Confirming live times…
             </p>
         </div>
 

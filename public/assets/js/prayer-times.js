@@ -13,6 +13,10 @@
   const storeKey = 'ic_prayer_city';
   let cities = [];
   let open = false;
+  let activeCity = {
+    name: root.getAttribute('data-city') || 'Firozabad',
+    state: root.getAttribute('data-state') || 'Uttar Pradesh',
+  };
 
   const currentCity = () => ({
     name: root.getAttribute('data-city') || 'Firozabad',
@@ -57,7 +61,7 @@
     root.setAttribute('data-date', data.for_date || '');
     if (label) label.textContent = (data.city || '') + (data.state ? ', ' + data.state : '');
     if (meta) {
-      meta.textContent = [data.weekday, data.date, data.live ? 'Live AlAdhan' : 'Live for India'].filter(Boolean).join(' · ');
+      meta.textContent = [data.weekday, data.date, data.live ? 'Live AlAdhan' : 'Calculated · confirming live…'].filter(Boolean).join(' · ');
     }
     if (errorBox) {
       if (!data.ok && data.error) {
@@ -137,8 +141,8 @@
     };
     const localApi = () => {
       const api = root.getAttribute('data-api') || '/api/prayer-times';
-      const params = new URLSearchParams({ city: city.name, state: city.state || '' });
-      return fetch(api + (api.includes('?') ? '&' : '?') + params.toString(), { headers: { Accept: 'application/json' } })
+      const params = new URLSearchParams({ city: city.name, state: city.state || '', _: String(Date.now()) });
+      return fetch(api + (api.includes('?') ? '&' : '?') + params.toString(), { cache: 'no-store', headers: { Accept: 'application/json' } })
         .then((res) => res.json())
         .then(apply);
     };
@@ -153,6 +157,7 @@
       localStorage.setItem(storeKey, JSON.stringify(city));
     } catch (e) {}
     setOpen(false);
+    activeCity = city;
     loadTimes(city);
   };
 
@@ -194,15 +199,19 @@
     saved = null;
   }
   const start = saved && saved.name ? saved : currentCity();
+  activeCity = start;
   loadTimes(start);
 
   markNow();
   setInterval(() => {
     const shown = root.getAttribute('data-date');
     if (shown && shown !== todayStamp()) {
-      loadTimes(currentCity());
+      loadTimes(activeCity);
       return;
     }
     markNow();
   }, 1000);
+  if (window.ICLive && typeof ICLive.watchFresh === 'function') {
+    ICLive.watchFresh(() => loadTimes(activeCity));
+  }
 })();

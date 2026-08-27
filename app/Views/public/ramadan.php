@@ -197,4 +197,4 @@ $countSecs = $countSec % 60;
         </div>
     </div>
 </section>
-<script src="<?= e(asset('assets/js/ramadan.js')) ?>?v=4" defer></script>
+<script src="<?= e(asset('assets/js/ramadan.js')) ?>?v=5" defer></script>

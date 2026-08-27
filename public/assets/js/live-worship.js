@@ -16,7 +16,7 @@ window.ICLive = (() => {
   const getJson = (url, ms) => {
     const ctrl = new AbortController();
     const timer = window.setTimeout(() => ctrl.abort(), ms || 8000);
-    return fetch(url, { signal: ctrl.signal, headers: { Accept: 'application/json' } })
+    return fetch(url, { signal: ctrl.signal, cache: 'no-store', headers: { Accept: 'application/json' } })
       .then((res) => {
         if (!res.ok) throw new Error('Upstream HTTP ' + res.status);
         return res.json();
@@ -24,13 +24,36 @@ window.ICLive = (() => {
       .finally(() => window.clearTimeout(timer));
   };
 
+  const watchFresh = (fn, minMs) => {
+    let last = 0;
+    const gap = minMs || 2500;
+    const run = (force) => {
+      const now = Date.now();
+      if (!force && now - last < gap) return;
+      last = now;
+      fn();
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') run(false);
+    });
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) run(true);
+    });
+  };
+
   const to12 = (raw) => {
-    const stamp = String(raw || '').trim().split(' ')[0] || '';
-    const m = stamp.match(/^(\d{1,2}):(\d{2})/);
-    if (!m) return String(raw || '').trim();
+    const text = String(raw || '').trim();
+    const m = text.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?/i);
+    if (!m) return text;
     let hour = parseInt(m[1], 10);
     const minute = m[2];
-    const suffix = hour >= 12 ? 'PM' : 'AM';
+    let suffix = (m[3] || '').toUpperCase();
+    if (suffix === 'AM' || suffix === 'PM') {
+      hour = hour % 12;
+      if (hour === 0) hour = 12;
+      return hour + ':' + minute + ' ' + suffix;
+    }
+    suffix = hour >= 12 ? 'PM' : 'AM';
     hour = hour % 12;
     if (hour === 0) hour = 12;
     return hour + ':' + minute + ' ' + suffix;
@@ -211,10 +234,12 @@ window.ICLive = (() => {
     const silverG = Number((cfg && cfg.silver_nisab_g) || 612.36);
     const rate = Number((cfg && cfg.rate) || 2.5);
     const method = (cfg && cfg.nisab_method) || 'lower';
+    const fxSpot = () => getJson('https://api.frankfurter.dev/v1/latest?from=USD&to=INR', 8000)
+      .catch(() => getJson('https://open.er-api.com/v6/latest/USD', 8000));
     return Promise.all([
       getJson('https://api.gold-api.com/price/XAU', 8000),
       getJson('https://api.gold-api.com/price/XAG', 8000),
-      getJson('https://api.frankfurter.app/latest?from=USD&to=INR', 8000),
+      fxSpot(),
     ]).then(([gold, silver, fx]) => {
       const goldOz = Number(gold && gold.price) || 0;
       const silverOz = Number(silver && silver.price) || 0;
@@ -230,7 +255,7 @@ window.ICLive = (() => {
         error: null,
         stale: false,
         live: true,
-        source: 'gold-api.com + frankfurter.app',
+        source: 'gold-api.com + frankfurter.dev',
         for_date: istStamp('iso'),
         gold_per_gram_inr: goldPerG,
         silver_per_gram_inr: silverPerG,
@@ -284,5 +309,5 @@ window.ICLive = (() => {
     });
   };
 
-  return { prayerTimes, hijriToday, ramadanPage, metalSpot, moonWeek, istStamp, to12 };
+  return { prayerTimes, hijriToday, ramadanPage, metalSpot, moonWeek, istStamp, to12, watchFresh };
 })();

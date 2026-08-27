@@ -205,4 +205,4 @@ $centerMonths = is_array($months ?? null) ? $months : [];
         <?php endif; ?>
     </div>
 </section>
-<script src="<?= e(asset('assets/js/calendar-live.js')) ?>?v=1" defer></script>
+<script src="<?= e(asset('assets/js/calendar-live.js')) ?>?v=2" defer></script>

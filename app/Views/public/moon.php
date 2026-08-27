@@ -143,4 +143,4 @@ $times = [
         <?php endif; ?>
     </div>
 </section>
-<script src="<?= e(asset('assets/js/moon-live.js')) ?>?v=1" defer></script>
+<script src="<?= e(asset('assets/js/moon-live.js')) ?>?v=3" defer></script>

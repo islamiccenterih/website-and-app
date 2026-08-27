@@ -17,6 +17,10 @@
   let cities = [];
   let open = false;
   let page = null;
+  let activeCity = {
+    name: root.getAttribute('data-city') || 'Firozabad',
+    state: root.getAttribute('data-state') || 'Uttar Pradesh',
+  };
 
   const currentCity = () => ({
     name: root.getAttribute('data-city') || 'Firozabad',
@@ -69,7 +73,7 @@
     const row = data.today_row || {};
     const greg = row.gregorian_label || '';
     const hijri = row.hijri_label || '';
-    if (meta) meta.textContent = ['Today', greg, hijri].filter(Boolean).join(' · ');
+    if (meta) meta.textContent = ['Today', greg, hijri, data.live ? 'Live AlAdhan' : 'Confirming live…'].filter(Boolean).join(' · ');
     setText('[data-today-dates]', [greg, hijri].filter(Boolean).join(' · '));
     if (flag && data.next_ramadan_label) flag.textContent = data.next_ramadan_label;
     if (errorBox) {
@@ -217,8 +221,8 @@
   const load = (city) => {
     const localApi = () => {
       const api = root.getAttribute('data-api') || '/api/ramadan';
-      const params = new URLSearchParams({ city: city.name, state: city.state || '' });
-      return fetch(api + (api.includes('?') ? '&' : '?') + params.toString(), { headers: { Accept: 'application/json' } })
+      const params = new URLSearchParams({ city: city.name, state: city.state || '', _: String(Date.now()) });
+      return fetch(api + (api.includes('?') ? '&' : '?') + params.toString(), { cache: 'no-store', headers: { Accept: 'application/json' } })
         .then((res) => res.json())
         .then(paint);
     };
@@ -234,6 +238,7 @@
   const selectCity = (city) => {
     try { localStorage.setItem(storeKey, JSON.stringify(city)); } catch (e) {}
     setOpen(false);
+    activeCity = city;
     load(city);
   };
 
@@ -254,12 +259,12 @@
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(storeKey) || 'null'); } catch (e) { saved = null; }
   const start = saved && saved.name ? saved : currentCity();
-  if (start.name !== currentCity().name || start.state !== currentCity().state) {
-    load(start);
-  } else {
-    load(currentCity());
-  }
+  activeCity = start;
+  load(start);
 
   setInterval(tickAll, 1000);
   tickAll();
+  if (window.ICLive && typeof ICLive.watchFresh === 'function') {
+    ICLive.watchFresh(() => load(activeCity));
+  }
 })();
