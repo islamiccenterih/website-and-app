@@ -4,7 +4,10 @@ $menu = $menu ?? ['label' => '', 'in_header' => true, 'in_footer' => false, 'pla
 $defaultName = (string) ($page['name'] ?? '');
 $value = (string) (($menu['label'] ?? '') !== '' ? $menu['label'] : $defaultName);
 $placement = (string) ($menu['placement'] ?? (!empty($menu['in_header']) ? ($menu['group'] ?? 'primary') : 'off'));
-if (!in_array($placement, ['off', 'primary', 'more', 'daily'], true)) {
+if ($placement === 'daily') {
+    $placement = 'more';
+}
+if (!in_array($placement, ['off', 'primary', 'more'], true)) {
     $placement = !empty($menu['in_header']) ? 'primary' : 'off';
 }
 ?>
@@ -20,9 +23,8 @@ if (!in_array($placement, ['off', 'primary', 'more', 'daily'], true)) {
             <option value="off"<?= selected($placement, 'off') ?>><?= e(header_group_label('off')) ?></option>
             <option value="primary"<?= selected($placement, 'primary') ?>><?= e(header_group_label('primary')) ?></option>
             <option value="more"<?= selected($placement, 'more') ?>><?= e(header_group_label('more')) ?></option>
-            <option value="daily"<?= selected($placement, 'daily') ?>><?= e(header_group_label('daily')) ?></option>
         </select>
-        <p class="help">Top menu sits on the bar. More and Daily use are dropdowns on desktop and labelled sections in the mobile menu. Not in header hides this page from both.</p>
+        <p class="help">Top menu sits on the bar. More is the dropdown on desktop and the extra section in the mobile menu. Not in header hides this page from both.</p>
     </div>
     <div class="page-vis">
         <label class="perm-item">

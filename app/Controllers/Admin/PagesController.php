@@ -119,16 +119,6 @@ final class PagesController extends BaseController
             $data['duas'] = present_copy_tree((new \App\Services\RamadanService())->duas());
             $data['ramadan_city'] = (string) ($tools['ramadan_city'] ?? 'Firozabad');
             $data['ramadan_state'] = (string) ($tools['ramadan_state'] ?? 'Uttar Pradesh');
-        } elseif ($key === 'daily_quran') {
-            $faith = (new \App\Services\FaithContentService())->bundle();
-            $data['embed'] = 'daily_quran';
-            $data['faithHadith'] = $faith['hadith'];
-        } elseif (in_array($key, ['daily_duas', 'janazah', 'hajj_umrah'], true)) {
-            $faith = (new \App\Services\FaithContentService())->bundle();
-            $data['embed'] = $key;
-            $data['faithGroups'] = $faith['duas'];
-            $data['faithSteps'] = $faith['janazah'];
-            $data['faithHajj'] = $faith['hajj'];
         }
         $this->screen('admin/pages/edit', $data);
     }

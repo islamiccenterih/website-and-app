@@ -52,13 +52,5 @@ $embed = (string) ($embed ?? '');
         <?php require APP_PATH . '/Views/admin/zakat/index.php'; ?>
         <?php elseif ($embed === 'ramadan'): ?>
             <?php require APP_PATH . '/Views/admin/ramadan/index.php'; ?>
-        <?php elseif ($embed === 'daily_quran'): ?>
-            <?php require APP_PATH . '/Views/admin/faith/hadith.php'; ?>
-        <?php elseif ($embed === 'daily_duas'): ?>
-            <?php require APP_PATH . '/Views/admin/faith/duas.php'; ?>
-        <?php elseif ($embed === 'janazah'): ?>
-            <?php require APP_PATH . '/Views/admin/faith/janazah.php'; ?>
-        <?php elseif ($embed === 'hajj_umrah'): ?>
-            <?php require APP_PATH . '/Views/admin/faith/hajj.php'; ?>
         <?php endif; ?>
 </div>

@@ -249,30 +249,4 @@
   if (window.ICLive && typeof ICLive.watchFresh === 'function') {
     ICLive.watchFresh(() => loadTimes(activeCity));
   }
-
-  let deferredPrompt = null;
-  const installBtn = root.querySelector('[data-pwa-install]');
-  window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
-    deferredPrompt = event;
-    if (installBtn) installBtn.hidden = false;
-  });
-  installBtn?.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt = null;
-      return;
-    }
-    window.alert('On iPhone: tap Share, then Add to Home Screen. On Android Chrome: menu → Install app / Add to Home Screen.');
-  });
-  root.querySelector('[data-prayer-alert]')?.addEventListener('click', () => {
-    if (!('Notification' in window)) {
-      window.alert('This browser does not support prayer alerts.');
-      return;
-    }
-    Notification.requestPermission();
-  });
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  }
 })();

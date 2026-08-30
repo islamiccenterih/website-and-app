@@ -1,0 +1,27 @@
+---
+description: Restore the eight removed faith-tool pages exactly as they were if the user names them and asks to bring them back.
+alwaysApply: true
+---
+
+# Restore removed faith pages
+
+These public pages were deliberately removed (routes, nav, admin, views, JS). Do **not** rebuild them unless the user names them and asks to bring them back / rebuild them.
+
+Pages (last complete copy is git commit `e3a0e44`):
+
+| Page | URL | Restore from |
+|---|---|---|
+| Daily Quran | `/daily-quran` | `app/Views/public/daily-quran.php`, `public/assets/js/daily-quran.js`, `FaithPagesController`, `QuranDuaService` (still in repo for hero dua) |
+| Daily Duas | `/daily-duas` | `daily-duas.php`, `faith-ui.js`, `FaithContentService` |
+| 99 Allah Names | `/99-allah-names` | `allah-names.php`, `allah-names.js` |
+| Quran Reader | `/quran-reader` | `quran-reader.php`, `quran-reader.js`, `recite.js` |
+| Daily Tasbeeh | `/daily-tasbeeh` | `tasbeeh.php`, `tasbeeh.js` |
+| Family Shares | `/family-shares` | `family-shares.php`, `family-shares.js`, `InheritanceService` |
+| Hajj & Umrah | `/hajj-umrah` | `hajj-umrah.php`, admin `faith/hajj.php` |
+| Janazah Steps | `/janazah-steps` | `janazah.php`, admin `faith/janazah.php` |
+
+How to restore: `git checkout e3a0e44 --` those files, plus the matching slices of `app/routes.php`, `app/Core/helpers.php`, `app/Core/SitePages.php`, `SeoController`, `PagesController`, admin faith views, and `FaithPagesController` / `FaithContentController` / `FaithContentService`. Rebuild them **the same** (copy, APIs, audio, IST daily ayah, Hindi/Urdu, shared-hosting: no PHP outbound hang).
+
+Nav: do **not** recreate **Daily use**. Add restored links under **More**. Keep the header language bar **off** unless the user asks for it again.
+
+---

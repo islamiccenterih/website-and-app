@@ -2,7 +2,6 @@
 $navSplit = header_nav_split();
 $navPrimary = $navSplit['primary'];
 $navMore = $navSplit['more'];
-$navDaily = $navSplit['daily'];
 $navDropOpen = static function (array $items): bool {
     foreach ($items as $item) {
         if (!str_starts_with((string) $item['url'], 'http') && is_active((string) $item['url'])) {
@@ -12,7 +11,6 @@ $navDropOpen = static function (array $items): bool {
     return false;
 };
 $navMoreOpen = $navDropOpen($navMore);
-$navDailyOpen = $navDropOpen($navDaily);
 $logo = setting('logo_image');
 $loginLabel = tt((string) setting('header_login_label', 'Student Login') ?: 'Student Login');
 $lang = \App\I18n\Lang::code();
@@ -53,22 +51,11 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
     <meta name="apple-mobile-web-app-title" content="<?= e(site_name()) ?>">
     <link rel="preload" href="<?= e(asset('assets/fonts/merriweather-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=94">
-    <script src="<?= e(asset('assets/js/recite.js')) ?>?v=4" defer></script>
     <script src="<?= e(asset('assets/js/live-worship.js')) ?>?v=7" defer></script>
 </head>
 <body class="<?= faith_terms_active() ? 'has-faith-terms' : '' ?>">
 <a class="skip-link" href="#main"><?= e(tt('Skip to content')) ?></a>
 <div class="site-top">
-    <div class="lang-bar">
-        <div class="container lang-bar-inner">
-            <span class="lang-bar-label"><?= e(tt('Select your language')) ?></span>
-            <nav class="lang-bar-nav" aria-label="<?= e(tt('Select your language')) ?>">
-                <?php foreach (\App\I18n\Lang::LOCALES as $code => $meta): ?>
-                    <a href="<?= e(url('/language/' . $code)) ?>" class="<?= $lang === $code ? 'is-active' : '' ?>" hreflang="<?= e($meta['html']) ?>" lang="<?= e($meta['html']) ?>"><?= e($meta['native']) ?></a>
-                <?php endforeach; ?>
-            </nav>
-        </div>
-    </div>
     <header class="site-header">
         <div class="container header-inner">
             <a class="logo" href="<?= e(url('/')) ?>">
@@ -95,7 +82,6 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
                         <?php endforeach; ?>
                         <?php
                         $navDrops = [
-                            ['id' => 'daily', 'label' => tt('Daily use'), 'items' => $navDaily, 'open' => $navDailyOpen],
                             ['id' => 'more', 'label' => tt('More'), 'items' => $navMore, 'open' => $navMoreOpen],
                         ];
                         foreach ($navDrops as $drop):
@@ -184,6 +170,6 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
     <span data-scroll-pct>0%</span>
 </button>
 <script src="<?= e(asset('assets/js/app.js')) ?>?v=23" defer></script>
-<script src="<?= e(asset('assets/js/prayer-times.js')) ?>?v=7" defer></script>
+<script src="<?= e(asset('assets/js/prayer-times.js')) ?>?v=8" defer></script>
 </body>
 </html>

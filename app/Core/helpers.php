@@ -531,14 +531,6 @@ function header_required_catalog(): array
         ['label' => 'Islamic Holidays', 'url' => '/islamic-holidays'],
         ['label' => 'Center Updates', 'url' => '/center-updates'],
         ['label' => 'Live', 'url' => '/live'],
-        ['label' => 'Daily Quran', 'url' => '/daily-quran'],
-        ['label' => 'Daily Duas', 'url' => '/daily-duas'],
-        ['label' => '99 Allah Names', 'url' => '/99-allah-names'],
-        ['label' => 'Quran Reader', 'url' => '/quran-reader'],
-        ['label' => 'Family Shares', 'url' => '/family-shares'],
-        ['label' => 'Janazah Steps', 'url' => '/janazah-steps'],
-        ['label' => 'Hajj & Umrah', 'url' => '/hajj-umrah'],
-        ['label' => 'Daily Tasbeeh', 'url' => '/daily-tasbeeh'],
     ];
 }
 
@@ -571,14 +563,6 @@ function footer_legacy_explore_urls(): array
         '/islamic-holidays',
         '/center-updates',
         '/live',
-        '/daily-quran',
-        '/daily-duas',
-        '/99-allah-names',
-        '/quran-reader',
-        '/family-shares',
-        '/janazah-steps',
-        '/hajj-umrah',
-        '/daily-tasbeeh',
     ];
 }
 
@@ -621,18 +605,10 @@ function header_nav_all(): array
         ['label' => 'Fatawa', 'url' => '/fatawa', 'group' => 'more'],
         ['label' => 'Moon Timing', 'url' => '/moon-timing', 'group' => 'more'],
         ['label' => 'Zakat Calculator', 'url' => '/zakat-calculator', 'group' => 'more'],
-        ['label' => 'Family Shares', 'url' => '/family-shares', 'group' => 'more'],
         ['label' => 'Islamic Calendar', 'url' => '/islamic-calendar', 'group' => 'more'],
         ['label' => 'Ramadan Mode', 'url' => '/ramadan-mode', 'group' => 'more'],
         ['label' => 'Islamic Holidays', 'url' => '/islamic-holidays', 'group' => 'more'],
-        ['label' => 'Hajj & Umrah', 'url' => '/hajj-umrah', 'group' => 'more'],
-        ['label' => 'Janazah Steps', 'url' => '/janazah-steps', 'group' => 'more'],
-        ['label' => 'Qibla Direction', 'url' => '/qibla-direction', 'group' => 'daily'],
-        ['label' => 'Daily Quran', 'url' => '/daily-quran', 'group' => 'daily'],
-        ['label' => 'Daily Duas', 'url' => '/daily-duas', 'group' => 'daily'],
-        ['label' => '99 Allah Names', 'url' => '/99-allah-names', 'group' => 'daily'],
-        ['label' => 'Quran Reader', 'url' => '/quran-reader', 'group' => 'daily'],
-        ['label' => 'Daily Tasbeeh', 'url' => '/daily-tasbeeh', 'group' => 'daily'],
+        ['label' => 'Qibla Direction', 'url' => '/qibla-direction', 'group' => 'more'],
     ]), header_required_catalog());
 }
 
@@ -648,35 +624,23 @@ function header_more_paths(): array
         '/center-updates',
         '/fatawa',
         '/moon-timing',
+        '/qibla-direction',
         '/zakat-calculator',
-        '/family-shares',
         '/islamic-calendar',
         '/ramadan-mode',
         '/islamic-holidays',
-        '/hajj-umrah',
-        '/janazah-steps',
     ];
 }
 
 /** @return list<string> */
 function header_daily_paths(): array
 {
-    return [
-        '/qibla-direction',
-        '/daily-quran',
-        '/daily-duas',
-        '/99-allah-names',
-        '/quran-reader',
-        '/daily-tasbeeh',
-    ];
+    return [];
 }
 
 function default_nav_group(string $url): string
 {
     $path = nav_item_path($url);
-    if (in_array($path, header_daily_paths(), true)) {
-        return 'daily';
-    }
     if (in_array($path, header_more_paths(), true)) {
         return 'more';
     }
@@ -686,7 +650,10 @@ function default_nav_group(string $url): string
 function normalize_nav_group(string $group, string $url = ''): string
 {
     $group = strtolower(trim($group));
-    if (in_array($group, ['primary', 'more', 'daily'], true)) {
+    if ($group === 'daily') {
+        return 'more';
+    }
+    if (in_array($group, ['primary', 'more'], true)) {
         return $group;
     }
     return $url !== '' ? default_nav_group($url) : 'primary';
@@ -703,8 +670,7 @@ function nav_item_group(array $item): string
 function header_group_label(string $group): string
 {
     return match ($group) {
-        'more' => 'More',
-        'daily' => 'Daily use',
+        'more', 'daily' => 'More',
         'off' => 'Not in header',
         default => 'Top menu',
     };
@@ -743,7 +709,6 @@ function header_nav_split(): array
 {
     $primary = [];
     $more = [];
-    $daily = [];
     $live = null;
     foreach (header_nav() as $item) {
         $path = nav_item_path((string) $item['url']);
@@ -752,10 +717,8 @@ function header_nav_split(): array
             $live = $item;
             continue;
         }
-        if ($group === 'more') {
+        if ($group === 'more' || $group === 'daily') {
             $more[] = $item;
-        } elseif ($group === 'daily') {
-            $daily[] = $item;
         } else {
             $primary[] = $item;
         }
@@ -775,7 +738,7 @@ function header_nav_split(): array
     return [
         'primary' => $primary,
         'more' => order_nav_group($more, 'more'),
-        'daily' => order_nav_group($daily, 'daily'),
+        'daily' => [],
     ];
 }
 
@@ -797,14 +760,6 @@ function default_page_menu_labels(): array
         '/islamic-holidays' => 'Islamic Holidays',
         '/center-updates' => 'Center Updates',
         '/live' => 'Live',
-        '/daily-quran' => 'Daily Quran',
-        '/daily-duas' => 'Daily Duas',
-        '/99-allah-names' => '99 Allah Names',
-        '/quran-reader' => 'Quran Reader',
-        '/family-shares' => 'Family Shares',
-        '/janazah-steps' => 'Janazah Steps',
-        '/hajj-umrah' => 'Hajj & Umrah',
-        '/daily-tasbeeh' => 'Daily Tasbeeh',
         '/privacy-policy' => 'Privacy Policy',
         '/privacy' => 'Privacy Policy',
         '/terms-and-conditions' => 'Terms & Conditions',
@@ -823,6 +778,25 @@ function repair_nav_label(string $url, string $label): string
 }
 
 /**
+ * Pages taken off the public site. Drop them from saved header/footer menus too.
+ *
+ * @return array<string, true>
+ */
+function retired_public_paths(): array
+{
+    return [
+        '/daily-quran' => true,
+        '/daily-duas' => true,
+        '/99-allah-names' => true,
+        '/quran-reader' => true,
+        '/family-shares' => true,
+        '/janazah-steps' => true,
+        '/hajj-umrah' => true,
+        '/daily-tasbeeh' => true,
+    ];
+}
+
+/**
  * Keep hidden rows in the list so they stay Hide in admin and are not
  * re-inserted as visible catalog pages.
  *
@@ -832,6 +806,16 @@ function repair_nav_label(string $url, string $label): string
  */
 function ensure_nav_links(array $links, array $required): array
 {
+    $retired = retired_public_paths();
+    $kept = [];
+    foreach ($links as $link) {
+        $path = nav_item_path((string) ($link['url'] ?? ''));
+        if ($path !== '' && isset($retired[$path])) {
+            continue;
+        }
+        $kept[] = $link;
+    }
+    $links = $kept;
     $have = [];
     foreach ($links as $i => $link) {
         $url = (string) ($link['url'] ?? '');

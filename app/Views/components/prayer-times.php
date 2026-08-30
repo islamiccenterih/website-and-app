@@ -56,10 +56,6 @@ $icon = '<svg viewBox="0 0 31 30" aria-hidden="true"><path d="M25 15.3A9.5 9.5 0
             <strong data-next-clock>—</strong>
             <em data-next-left></em>
         </div>
-        <div class="salah-pwa">
-            <button class="btn btn-outline btn-sm" type="button" data-pwa-install>Add to Home Screen</button>
-            <button class="btn btn-outline btn-sm" type="button" data-prayer-alert>Prayer alert</button>
-        </div>
 
         <div class="salah-error" data-prayer-error <?= empty($prayer['ok']) && !empty($prayer['error']) ? '' : 'hidden' ?>>
             <?= e((string) ($prayer['error'] ?? '')) ?>

@@ -35,7 +35,7 @@ if ($legalHeadingValue === '' || strcasecmp($legalHeadingValue, 'Explore') === 0
 
     <h2>Header menu</h2>
     <div class="field"><label>Student login button</label><input name="header_login_label" value="<?= e((string) setting('header_login_label', 'Student Login')) ?>"></div>
-    <p class="help">Each row can sit in the top bar, the More dropdown, or Daily use. Hide removes it from the public menu. Empty rows are ignored — use them to add a new page or an external link.</p>
+    <p class="help">Each row can sit in the top bar or the More dropdown. Hide removes it from the public menu. Empty rows are ignored — use them to add a new page or an external link.</p>
     <?php foreach ($nav as $i => $link): ?>
         <?php $group = nav_item_group($link); ?>
         <div class="row-nav<?= !empty($link['hidden']) ? ' is-nav-hidden' : '' ?>" data-nav-row>
@@ -46,7 +46,6 @@ if ($legalHeadingValue === '' || strcasecmp($legalHeadingValue, 'Explore') === 0
                 <select name="nav_group[]">
                     <option value="primary"<?= selected($group, 'primary') ?>><?= e(header_group_label('primary')) ?></option>
                     <option value="more"<?= selected($group, 'more') ?>><?= e(header_group_label('more')) ?></option>
-                    <option value="daily"<?= selected($group, 'daily') ?>><?= e(header_group_label('daily')) ?></option>
                 </select>
             </div>
             <?php $visibilityField('nav_hidden[]', $link, $i, 'Menu'); ?>

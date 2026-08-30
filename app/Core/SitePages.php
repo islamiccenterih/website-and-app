@@ -150,78 +150,6 @@ final class SitePages
                 'blurb' => 'Eid and other Islamic dates observed in India.',
                 'actions' => [],
             ],
-            'daily_quran' => [
-                'name' => 'Daily Quran',
-                'url' => '/daily-quran',
-                'module' => 'pages',
-                'copy' => 'daily_quran',
-                'fields' => ['kicker', 'title', 'lead', 'ayah_kicker', 'hadith_kicker', 'notes'],
-                'blurb' => 'Today’s ayah, short tafsir, and a hadith — with WhatsApp share.',
-                'actions' => [],
-            ],
-            'daily_duas' => [
-                'name' => 'Daily Duas',
-                'url' => '/daily-duas',
-                'module' => 'pages',
-                'copy' => 'daily_duas',
-                'fields' => ['kicker', 'title', 'lead'],
-                'blurb' => 'Morning, evening, food, travel, home, illness, and janazah duas.',
-                'actions' => [],
-            ],
-            'allah_names' => [
-                'name' => '99 Allah Names',
-                'url' => '/99-allah-names',
-                'module' => 'pages',
-                'copy' => 'allah_names',
-                'fields' => ['kicker', 'title', 'lead', 'help'],
-                'blurb' => 'Asma ul Husna with meaning and recitation.',
-                'actions' => [],
-            ],
-            'quran_reader' => [
-                'name' => 'Quran Reader',
-                'url' => '/quran-reader',
-                'module' => 'pages',
-                'copy' => 'quran_reader',
-                'fields' => ['kicker', 'title', 'lead', 'help'],
-                'blurb' => 'Read, search, and listen to the Qur’an with Urdu and Hindi meaning.',
-                'actions' => [],
-            ],
-            'family_shares' => [
-                'name' => 'Family Shares',
-                'url' => '/family-shares',
-                'module' => 'pages',
-                'copy' => 'family_shares',
-                'fields' => ['kicker', 'title', 'lead', 'notes_title', 'notes'],
-                'blurb' => 'Mirath calculator — who receives what after a death (Hanafi estimate).',
-                'actions' => [],
-            ],
-            'janazah' => [
-                'name' => 'Janazah Steps',
-                'url' => '/janazah-steps',
-                'module' => 'pages',
-                'copy' => 'janazah',
-                'fields' => ['kicker', 'title', 'lead'],
-                'blurb' => 'Ghusl, kafan, janazah salah, and burial — with duas.',
-                'actions' => [],
-            ],
-            'hajj_umrah' => [
-                'name' => 'Hajj & Umrah',
-                'url' => '/hajj-umrah',
-                'module' => 'pages',
-                'copy' => 'hajj_umrah',
-                'fields' => ['kicker', 'title', 'lead'],
-                'blurb' => 'Hajj and Umrah checklist with the main duas.',
-                'actions' => [],
-            ],
-            'tasbeeh' => [
-                'name' => 'Daily Tasbeeh',
-                'url' => '/daily-tasbeeh',
-                'module' => 'pages',
-                'copy' => 'tasbeeh',
-                'fields' => ['kicker', 'title', 'lead', 'help'],
-                'blurb' => 'Digital tasbeeh — tap to count; every 100 is saved as a completed set.',
-                'actions' => [],
-            ],
             'updates' => [
                 'name' => 'Center Updates',
                 'url' => '/center-updates',
@@ -396,8 +324,11 @@ final class SitePages
     public static function postedHeaderPlacement(string $url): array
     {
         $posted = strtolower(trim((string) ($_POST['header_group'] ?? '')));
-        if (in_array($posted, ['primary', 'more', 'daily'], true)) {
+        if (in_array($posted, ['primary', 'more'], true)) {
             return [true, $posted];
+        }
+        if ($posted === 'daily') {
+            return [true, 'more'];
         }
         if ($posted === 'off' || $posted === 'none') {
             return [false, default_nav_group($url)];
@@ -493,54 +424,6 @@ final class SitePages
                 'converter_kicker' => 'Convert a date',
                 'converter_title' => 'Hijri ↔ English',
                 'converter_lead' => 'See today’s Islamic date, or convert any English date to Hijri and any Hijri date to English.',
-            ],
-            'daily_quran' => [
-                'kicker' => 'Today’s recitation',
-                'title' => 'Daily Quran',
-                'lead' => 'An ayah for today, a short tafsir, and a hadith — new each morning (India time). Share it on WhatsApp.',
-                'ayah_kicker' => 'Ayah of the day',
-                'hadith_kicker' => 'Hadith of the day',
-                'notes' => '',
-            ],
-            'daily_duas' => [
-                'kicker' => 'Words for the day',
-                'title' => 'Daily Duas',
-                'lead' => 'Duas for morning and evening, food, travel, the home, illness, and janazah — Arabic, how to read it, and meaning.',
-            ],
-            'allah_names' => [
-                'kicker' => 'Asma ul Husna',
-                'title' => '99 Allah Names',
-                'lead' => 'The ninety-nine beautiful names. Tap a name to hear it, and read the meaning in English.',
-                'help' => 'Tap Play to hear this name.',
-            ],
-            'quran_reader' => [
-                'kicker' => 'The Book',
-                'title' => 'Quran Reader',
-                'lead' => 'Open any surah, search an ayah, and listen. Arabic is the Tanzil Uthmani text. Urdu and Hindi meanings sit under each ayah.',
-                'help' => 'Audio is Mishary Rashid Alafasy via a public Qur’an CDN. Search looks inside the surah you opened, and across the English meaning.',
-            ],
-            'family_shares' => [
-                'kicker' => 'Mirath',
-                'title' => 'Family Shares',
-                'lead' => 'After someone dies, who receives what? Enter the estate and the close family. This is a Hanafi estimate for common cases — not a fatwa.',
-                'notes_title' => 'How to use this',
-                'notes' => 'This covers spouse, children, and parents (and brothers/sisters only when there is no son and no father). Grandparents, missing heirs, debts, wasiyyah, and ‘awl in rare mixes need a teacher. Figures are rounded. Ask the center before you divide property.',
-            ],
-            'janazah' => [
-                'kicker' => 'When a Muslim dies',
-                'title' => 'Janazah Steps',
-                'lead' => 'Ghusl, kafan, the janazah prayer, and burial — with the duas said at each step. Follow the imam at the center if the practice differs.',
-            ],
-            'hajj_umrah' => [
-                'kicker' => 'The journey',
-                'title' => 'Hajj & Umrah',
-                'lead' => 'A short checklist and the main duas for Umrah and Hajj. Ihram, Tawaf, Sa‘i, Arafah, and return — keep it with you on the road.',
-            ],
-            'tasbeeh' => [
-                'kicker' => 'Dhikr',
-                'title' => 'Daily Tasbeeh',
-                'lead' => 'Tap the circle. After every 100, a completed count is added. Reset clears everything on this phone.',
-                'help' => '100 taps = 1 completed hundred. 200 = 2, 300 = 3. Vibration plus a short tick on each tap. Reset clears the count.',
             ],
             'qibla' => [
                 'kicker' => 'Face the House of Allah',

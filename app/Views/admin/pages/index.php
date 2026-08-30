@@ -27,4 +27,4 @@ require APP_PATH . '/Views/components/section-head.php';
         </article>
     <?php endforeach; ?>
 </div>
-<p class="help">Open a page to put it in the top menu, the More dropdown, or Daily use — or to hide it. Extra custom links are in <a href="<?= e(url('/admin/footer')) ?>">Header &amp; Footer</a>. Site name and logo are in <a href="<?= e(url('/admin/settings')) ?>">Settings</a>.</p>
+<p class="help">Open a page to put it in the top menu or the More dropdown — or to hide it. Extra custom links are in <a href="<?= e(url('/admin/footer')) ?>">Header &amp; Footer</a>. Site name and logo are in <a href="<?= e(url('/admin/settings')) ?>">Settings</a>.</p>
