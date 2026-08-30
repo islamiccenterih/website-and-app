@@ -187,9 +187,10 @@ CREATE TABLE IF NOT EXISTS `about_sections` (
 
 CREATE TABLE IF NOT EXISTS `founders` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(120) NOT NULL,
-  `designation` VARCHAR(120) DEFAULT NULL,
+  `name` VARCHAR(180) NOT NULL,
+  `designation` VARCHAR(255) DEFAULT NULL,
   `biography` TEXT,
+  `highlights` TEXT,
   `photo` VARCHAR(255) DEFAULT NULL,
   `sort_order` INT NOT NULL DEFAULT 0,
   `status` ENUM('draft','published') NOT NULL DEFAULT 'published',

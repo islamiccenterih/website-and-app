@@ -239,22 +239,36 @@ window.ICLive = (() => {
       .finally(() => window.clearTimeout(timer));
   };
 
+  const ibjaDateKey = (dmy) => {
+    const parts = String(dmy || '').split('/');
+    if (parts.length !== 3) return 0;
+    return (Number(parts[2]) * 10000) + (Number(parts[1]) * 100) + Number(parts[0]);
+  };
+
+  const pickLatestIbja = (rows) => {
+    let best = null;
+    rows.forEach((row) => {
+      if (!row || row.gold10 < 10000 || row.silverKg < 10000) return;
+      if (!best || ibjaDateKey(row.date) >= ibjaDateKey(best.date)) best = row;
+    });
+    return best;
+  };
+
   const parseIbja = (text) => {
     const re = /\|\s*\*{0,2}(\d{2}\/\d{2}\/\d{4})\*{0,2}\s*\|\s*(\d{5,7})\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*(\d{5,7})\s*\|/g;
+    const rows = [];
     let match;
-    let best = null;
     while ((match = re.exec(text))) {
-      const row = { date: match[1], gold10: Number(match[2]), silverKg: Number(match[3]) };
-      if (!best || row.date === best.date) best = row;
+      rows.push({ date: match[1], gold10: Number(match[2]), silverKg: Number(match[3]) });
     }
+    let best = pickLatestIbja(rows);
     if (best) return best;
-    const htmlGold = text.match(/data-label="Gold 999">\s*(\d{5,7})/);
-    const htmlSilver = text.match(/data-label="Silver 999">\s*(\d{5,7})/);
-    const htmlDate = text.match(/<strong>(\d{2}\/\d{2}\/\d{4})<\/strong>/);
-    if (htmlGold && htmlSilver) {
-      return { date: htmlDate ? htmlDate[1] : '', gold10: Number(htmlGold[1]), silverKg: Number(htmlSilver[1]) };
+    const htmlRe = /(\d{2}\/\d{2}\/\d{4})[\s\S]{0,160}?data-label="Gold 999">\s*(\d{5,7})[\s\S]{0,160}?data-label="Silver 999">\s*(\d{5,7})/g;
+    const htmlRows = [];
+    while ((match = htmlRe.exec(text))) {
+      htmlRows.push({ date: match[1], gold10: Number(match[2]), silverKg: Number(match[3]) });
     }
-    return null;
+    return pickLatestIbja(htmlRows);
   };
 
   const packIndiaSpot = (cfg, row) => {
@@ -262,9 +276,8 @@ window.ICLive = (() => {
     const silverG = Number((cfg && cfg.silver_nisab_g) || 612.36);
     const rate = Number((cfg && cfg.rate) || 2.5);
     const method = (cfg && cfg.nisab_method) || 'lower';
-    const gst = 1.03;
-    const gold10 = row.gold10 * gst;
-    const silverKg = row.silverKg * gst;
+    const gold10 = row.gold10;
+    const silverKg = row.silverKg;
     const goldPerG = gold10 / 10;
     const silverPerG = silverKg / 1000;
     const goldNisab = goldG * goldPerG;
@@ -277,7 +290,7 @@ window.ICLive = (() => {
       stale: false,
       live: true,
       india: true,
-      source: 'IBJA India 24k + 3% GST',
+      source: 'IBJA India 24k (999), without GST',
       for_date: iso,
       gold_per_gram_inr: goldPerG,
       silver_per_gram_inr: silverPerG,

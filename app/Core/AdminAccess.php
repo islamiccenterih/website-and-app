@@ -14,6 +14,7 @@ final class AdminAccess
         return [
             'home' => ['label' => 'Home', 'prefix' => '/admin/home'],
             'about' => ['label' => 'About Us', 'prefix' => '/admin/about'],
+            'coordinators' => ['label' => 'Coordinator Info', 'prefix' => '/admin/coordinators'],
             'courses' => ['label' => 'Courses', 'prefix' => '/admin/courses'],
             'activities' => ['label' => 'Social Activities', 'prefix' => '/admin/activities'],
             'gallery' => ['label' => 'Gallery', 'prefix' => '/admin/gallery'],
@@ -180,7 +181,7 @@ final class AdminAccess
         }
         $order = [
             'Overview' => ['/admin'],
-            'Website' => ['/admin/pages', '/admin/courses', '/admin/activities', '/admin/gallery', '/admin/updates', '/admin/programs'],
+            'Website' => ['/admin/pages', '/admin/coordinators', '/admin/courses', '/admin/activities', '/admin/gallery', '/admin/updates', '/admin/programs'],
             'Worship' => ['/admin/calendar', '/admin/fatawa'],
             'People' => ['/admin/messages', '/admin/enquiries', '/admin/students', '/admin/live-classes', '/admin/live-now', '/admin/results', '/admin/members'],
             'System' => ['/admin/footer', '/admin/settings'],

@@ -393,6 +393,31 @@ final class Schema
                 'ALTER TABLE `settings` MODIFY `setting_value` MEDIUMTEXT'
             );
         });
+        self::once('schema-coordinators-v1.ok', static function (): void {
+            $db = Database::get();
+            $pdo = $db->pdo();
+            $table = (int) $db->fetchColumn(
+                "SELECT COUNT(*) FROM information_schema.tables
+                 WHERE table_schema = DATABASE() AND table_name = 'founders'"
+            );
+            if ($table === 0) {
+                return;
+            }
+            $has = static function (string $column) use ($db): bool {
+                return (int) $db->fetchColumn(
+                    "SELECT COUNT(*) FROM information_schema.columns
+                     WHERE table_schema = DATABASE() AND table_name = 'founders' AND column_name = ?",
+                    [$column]
+                ) > 0;
+            };
+            if (!$has('highlights')) {
+                $pdo->exec('ALTER TABLE `founders` ADD `highlights` TEXT NULL AFTER `biography`');
+            }
+            $pdo->exec('ALTER TABLE `founders` MODIFY `name` VARCHAR(180) NOT NULL');
+            $pdo->exec('ALTER TABLE `founders` MODIFY `designation` VARCHAR(255) NULL');
+            \App\Services\CoordinatorService::seed();
+        });
+
         self::once('content-terms-bake-v1.ok', static function (): void {
             \App\Services\ContentTerms::bake();
         });

@@ -223,9 +223,10 @@ final class ZakatService
         if ($row === null) {
             throw new \RuntimeException('India bullion table was empty.');
         }
-        $gst = 1.03;
-        $gold10 = $row['gold10'] * $gst;
-        $silverKg = $row['silver_kg'] * $gst;
+        // IBJA publishes 999 gold per 10g and silver per kg without GST or making charges.
+        // Google / ibja.co Fine Gold 999 use this same number. Do not add 3% GST.
+        $gold10 = $row['gold10'];
+        $silverKg = $row['silver_kg'];
         $goldPerG = $gold10 / 10;
         $silverPerG = $silverKg / 1000;
         $parts = explode('/', $row['date']);
@@ -239,49 +240,60 @@ final class ZakatService
             'india' => true,
             'for_date' => $iso,
             'fetched_at' => gmdate('c'),
-            'source' => 'IBJA India 24k + 3% GST',
+            'source' => 'IBJA India 24k (999), without GST',
             'gold_per_gram_inr' => round($goldPerG, 4),
             'silver_per_gram_inr' => round($silverPerG, 4),
-            'purity' => 'India 24k / 999 silver (IBJA + GST, not jewellery making charges)',
+            'purity' => 'India 24k / 999 silver (IBJA benchmark, without GST or making charges)',
         ];
     }
 
     /**
+     * Latest IBJA session: newest date, then the later row of that date (PM close).
+     *
      * @return array{date:string,gold10:float,silver_kg:float}|null
      */
     private function parseIbja(string $text): ?array
     {
-        $best = null;
+        $candidates = [];
         if (preg_match_all('/\|\s*\*{0,2}(\d{2}\/\d{2}\/\d{4})\*{0,2}\s*\|\s*(\d{5,7})\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*(\d{5,7})\s*\|/', $text, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
-                $row = [
+                $candidates[] = [
                     'date' => $match[1],
                     'gold10' => (float) $match[2],
                     'silver_kg' => (float) $match[3],
                 ];
-                if ($best === null || $row['date'] === $best['date']) {
-                    $best = $row;
+            }
+        }
+        if ($candidates === []) {
+            if (preg_match_all('/(\d{2}\/\d{2}\/\d{4})[\s\S]{0,160}?data-label="Gold 999">\s*(\d{5,7})[\s\S]{0,160}?data-label="Silver 999">\s*(\d{5,7})/', $text, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $match) {
+                    $candidates[] = [
+                        'date' => $match[1],
+                        'gold10' => (float) $match[2],
+                        'silver_kg' => (float) $match[3],
+                    ];
                 }
             }
         }
-        if ($best !== null) {
-            return $best;
-        }
-        if (
-            preg_match('/data-label="Gold 999">\s*(\d{5,7})/', $text, $gold)
-            && preg_match('/data-label="Silver 999">\s*(\d{5,7})/', $text, $silver)
-        ) {
-            $date = '';
-            if (preg_match('/<strong>(\d{2}\/\d{2}\/\d{4})<\/strong>/', $text, $d)) {
-                $date = $d[1];
+        $best = null;
+        foreach ($candidates as $row) {
+            if ($row['gold10'] < 10000 || $row['silver_kg'] < 10000) {
+                continue;
             }
-            return [
-                'date' => $date,
-                'gold10' => (float) $gold[1],
-                'silver_kg' => (float) $silver[1],
-            ];
+            if ($best === null || $this->ibjaDateKey($row['date']) >= $this->ibjaDateKey($best['date'])) {
+                $best = $row;
+            }
         }
-        return null;
+        return $best;
+    }
+
+    private function ibjaDateKey(string $dmy): int
+    {
+        $parts = explode('/', $dmy);
+        if (count($parts) !== 3) {
+            return 0;
+        }
+        return ((int) $parts[2] * 10000) + ((int) $parts[1] * 100) + (int) $parts[0];
     }
 
     private function fetchPage(string $url, int $timeout): string

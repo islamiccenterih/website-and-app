@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Controllers\PublicSite;
 
 use App\Core\Controller;
+use App\Models\AboutSection;
 use App\Models\Activity;
 use App\Models\Course;
 use App\Models\Gallery;
 use App\Models\HomeSection;
+use App\Services\CoordinatorService;
 use App\Services\PrayerService;
 use App\Services\QuranDuaService;
 
@@ -58,6 +60,8 @@ final class HomeController extends Controller
             'gallery' => Gallery::featured(8),
             'prayer' => (new PrayerService())->timings('Firozabad', 'Uttar Pradesh', false),
             'heroDua' => QuranDuaService::current(),
+            'coordinators' => CoordinatorService::published(),
+            'coordinatorIntro' => AboutSection::keyed()['founders_intro'] ?? [],
         ]);
     }
 }

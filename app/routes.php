@@ -98,9 +98,12 @@ $router->post('/admin/gallery/images/{id}/delete', [Admin\GalleryController::cla
 
 $router->get('/admin/about', [Admin\AboutController::class, 'index'], ['admin']);
 $router->post('/admin/about', [Admin\AboutController::class, 'update'], ['admin']);
-$router->post('/admin/about/founders', [Admin\AboutController::class, 'storeFounder'], ['admin']);
-$router->post('/admin/about/founders/{id}', [Admin\AboutController::class, 'updateFounder'], ['admin']);
-$router->post('/admin/about/founders/{id}/delete', [Admin\AboutController::class, 'destroyFounder'], ['admin']);
+
+$router->get('/admin/coordinators', [Admin\CoordinatorController::class, 'index'], ['admin']);
+$router->post('/admin/coordinators', [Admin\CoordinatorController::class, 'updateIntro'], ['admin']);
+$router->post('/admin/coordinators/add', [Admin\CoordinatorController::class, 'store'], ['admin']);
+$router->post('/admin/coordinators/{id}/delete', [Admin\CoordinatorController::class, 'destroy'], ['admin']);
+$router->post('/admin/coordinators/{id}', [Admin\CoordinatorController::class, 'update'], ['admin']);
 
 $router->get('/admin/home', [Admin\HomeController::class, 'index'], ['admin']);
 $router->post('/admin/home', [Admin\HomeController::class, 'update'], ['admin']);

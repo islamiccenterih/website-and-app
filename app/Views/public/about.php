@@ -53,39 +53,12 @@ $values = is_array($foundationExtra['values'] ?? null) ? $foundationExtra['value
 </section>
 
 <?php
-$foundersIntro = $sections['founders_intro'] ?? [];
-$foundersExtra = json_decode((string) ($foundersIntro['extra_json'] ?? ''), true) ?: [];
+$coordinatorSand = true;
+require APP_PATH . '/Views/components/coordinator-section.php';
 ?>
-<?php if ($founders): ?>
-<section class="section section-sand">
-    <div class="container">
-        <?php
-        $kicker = $foundersExtra['kicker'] ?? 'People';
-        $title = $foundersIntro['title'] ?? 'Founder Members';
-        $tag = 'h2';
-        $lead = $foundersIntro['content'] ?? '';
-        $align = 'center';
-        $light = false;
-        require APP_PATH . '/Views/components/section-head.php';
-        ?>
-        <div class="founder-grid">
-            <?php foreach ($founders as $founder): ?>
-                <article class="founder-card">
-                    <img src="<?= e(upload_url($founder['photo'])) ?>" alt="<?= e($founder['name']) ?>">
-                    <div class="body">
-                        <h3><?= e($founder['name']) ?></h3>
-                        <p class="role"><?= e($founder['designation']) ?></p>
-                        <p><?= e(cms($founder['biography'])) ?></p>
-                    </div>
-                </article>
-            <?php endforeach; ?>
-        </div>
-    </div>
-</section>
-<?php endif; ?>
 
 <?php $history = $sections['history'] ?? []; $historyExtra = json_decode((string) ($history['extra_json'] ?? ''), true) ?: []; ?>
-<section class="section<?= $founders ? '' : ' section-sand' ?>">
+<section class="section<?= $coordinators ? '' : ' section-sand' ?>">
     <div class="container journey-wrap">
         <?php
         $kicker = $historyExtra['kicker'] ?? 'From a small room to a growing vision';
@@ -111,7 +84,7 @@ $foundersExtra = json_decode((string) ($foundersIntro['extra_json'] ?? ''), true
     </div>
 </section>
 
-<section class="section<?= $founders ? ' section-sand' : '' ?>">
+<section class="section<?= $coordinators ? ' section-sand' : '' ?>">
     <div class="container">
         <?php $mission = $sections['mission'] ?? []; $vision = $sections['vision'] ?? [];
         $missionExtra = json_decode((string) ($mission['extra_json'] ?? ''), true) ?: [];
@@ -152,7 +125,7 @@ $foundersExtra = json_decode((string) ($foundersIntro['extra_json'] ?? ''), true
 </section>
 
 <?php $who = $sections['who_we_are'] ?? []; $whoExtra = json_decode((string) ($who['extra_json'] ?? ''), true) ?: []; ?>
-<section class="section<?= $founders ? '' : ' section-sand' ?>">
+<section class="section<?= $coordinators ? '' : ' section-sand' ?>">
     <div class="container approach-wrap">
         <?php
         $kicker = $whoExtra['kicker'] ?? 'Our Approach';

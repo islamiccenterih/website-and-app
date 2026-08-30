@@ -3,7 +3,6 @@ $s = $sections;
 $keys = [
     'page_hero' => 'Page top (About Us banner)',
     'foundation' => 'Foundation / establishment',
-    'founders_intro' => 'Founder members heading',
     'history' => 'Our Journey',
     'mission' => 'Mission',
     'vision' => 'Vision',
@@ -33,27 +32,25 @@ endif;
         <h2><?= e($label) ?></h2>
         <div class="field"><label>Gold tag</label><input name="kicker[<?= e($key) ?>]" value="<?= e((string) ($extra['kicker'] ?? '')) ?>"></div>
         <div class="field"><label>Heading</label><input name="title[<?= e($key) ?>]" value="<?= e($row['title'] ?? '') ?>"></div>
-        <div class="field"><label><?= $key === 'page_hero' || $key === 'founders_intro' ? 'Introduction' : 'Content' ?></label>
-            <textarea name="content[<?= e($key) ?>]" rows="<?= $key === 'page_hero' || $key === 'founders_intro' ? '3' : '5' ?>"><?= e($row['content'] ?? '') ?></textarea>
+        <div class="field"><label><?= $key === 'page_hero' ? 'Introduction' : 'Content' ?></label>
+            <textarea name="content[<?= e($key) ?>]" rows="<?= $key === 'page_hero' ? '3' : '5' ?>"><?= e($row['content'] ?? '') ?></textarea>
         </div>
-        <?php if ($key !== 'founders_intro'): ?>
-            <div class="field">
-                <label>Image</label>
-                <div class="image-field">
-                    <div class="image-preview">
-                        <?php if (!empty($row['image'])): ?>
-                            <img src="<?= e(upload_url($row['image'])) ?>" alt="">
-                        <?php else: ?>
-                            No picture yet
-                        <?php endif; ?>
-                    </div>
-                    <div>
-                        <input type="file" name="image_<?= e($key) ?>" accept="image/jpeg,image/png,image/webp,image/gif">
-                        <p class="help">JPG, PNG or WebP. Leave empty to keep the current picture.</p>
-                    </div>
+        <div class="field">
+            <label>Image</label>
+            <div class="image-field">
+                <div class="image-preview">
+                    <?php if (!empty($row['image'])): ?>
+                        <img src="<?= e(upload_url($row['image'])) ?>" alt="">
+                    <?php else: ?>
+                        No picture yet
+                    <?php endif; ?>
+                </div>
+                <div>
+                    <input type="file" name="image_<?= e($key) ?>" accept="image/jpeg,image/png,image/webp,image/gif">
+                    <p class="help">JPG, PNG or WebP. Leave empty to keep the current picture.</p>
                 </div>
             </div>
-        <?php endif; ?>
+        </div>
         <?php if ($key === 'foundation'): ?>
             <div class="row-2">
                 <div class="field"><label>Established</label><input name="established" value="<?= e($foundationExtra['established'] ?? '') ?>"></div>
@@ -78,37 +75,4 @@ endif;
     <?php endforeach; ?>
     <button class="btn btn-walnut page-save" type="submit">Save page</button>
 </form>
-
-<h2>Founder members</h2>
-<form class="form" method="post" enctype="multipart/form-data" action="<?= e(url('/admin/about/founders')) ?>">
-    <?= csrf_field() ?>
-    <div class="row-2">
-        <div class="field"><label>Name</label><input name="name" required></div>
-        <div class="field"><label>Designation</label><input name="designation"></div>
-    </div>
-    <div class="field"><label>Biography</label><textarea name="biography" rows="3"></textarea></div>
-    <div class="field"><label>Photo</label><input type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/gif"></div>
-    <button class="btn btn-walnut" type="submit">Add founder</button>
-</form>
-<?php foreach ($founders as $founder): ?>
-    <form class="form" method="post" enctype="multipart/form-data" action="<?= e(url('/admin/about/founders/' . $founder['id'])) ?>" style="margin-top:1rem">
-        <?= csrf_field() ?>
-        <img class="thumb" src="<?= e(upload_url($founder['photo'])) ?>" alt="">
-        <div class="row-2">
-            <div class="field"><label>Name</label><input name="name" value="<?= e($founder['name']) ?>"></div>
-            <div class="field"><label>Designation</label><input name="designation" value="<?= e($founder['designation']) ?>"></div>
-        </div>
-        <div class="field"><label>Biography</label><textarea name="biography" rows="3"><?= e($founder['biography']) ?></textarea></div>
-        <div class="field"><label>Replace photo</label><input type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/gif"></div>
-        <div class="field"><label>Status</label>
-            <select name="status">
-                <option value="published"<?= selected($founder['status'], 'published') ?>>Published</option>
-                <option value="draft"<?= selected($founder['status'], 'draft') ?>>Draft</option>
-            </select>
-        </div>
-        <button class="btn btn-walnut btn-sm" type="submit">Save</button>
-    </form>
-    <form method="post" action="<?= e(url('/admin/about/founders/' . $founder['id'] . '/delete')) ?>" data-confirm="Remove this founder?">
-        <?= csrf_field() ?><button class="btn btn-outline btn-sm" type="submit">Delete</button>
-    </form>
-<?php endforeach; ?>
+<p class="help">Coordinator names, photos, and details are edited under <a href="<?= e(url('/admin/coordinators')) ?>">Coordinator Info</a>. Changes there appear on Home and About Us.</p>

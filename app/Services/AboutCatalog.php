@@ -96,10 +96,10 @@ final class AboutCatalog
                 ],
             ],
             'founders_intro' => [
-                'title' => 'Founder Members',
-                'content' => 'The people who built and continue to serve the Center.',
+                'title' => 'Coordinators',
+                'content' => 'The coordinators who guide Islamic Center Information Hub — in faith, education, and service.',
                 'image' => null,
-                'extra' => ['kicker' => 'People'],
+                'extra' => ['kicker' => 'Leadership'],
             ],
             'history' => [
                 'title' => 'Our Journey',

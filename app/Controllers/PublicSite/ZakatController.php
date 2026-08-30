@@ -32,6 +32,7 @@ final class ZakatController extends Controller
             $json = is_string($raw) ? json_decode($raw, true) : null;
             $input = is_array($json) ? $json : $_POST;
         }
-        json_response((new ZakatService())->calculate(is_array($input) ? $input : []));
+        $svc = new ZakatService();
+        json_response($svc->calculate(is_array($input) ? $input : [], $svc->liveSnapshot()));
     }
 }

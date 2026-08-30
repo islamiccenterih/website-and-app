@@ -7,6 +7,16 @@
   const lines = root.querySelector('[data-zakat-lines]');
   const errorBox = root.querySelector('[data-zakat-error]');
   const rupee = (n) => '₹' + Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const ibjaNote = (spot) => {
+    const iso = String((spot && spot.for_date) || '');
+    const parts = iso.split('-');
+    const when = parts.length === 3
+      ? new Date(iso + 'T12:00:00+05:30').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
+      : '';
+    return when
+      ? 'IBJA 24k (999) · last close ' + when + ' · without GST (same as ibjarates.com)'
+      : 'IBJA 24k (999) · without GST (same as ibjarates.com)';
+  };
 
   const payload = () => {
     const data = {};
@@ -32,7 +42,7 @@
     if (g10) g10.textContent = rupee(spot.gold_per_10g_inr) + ' / 10g 24k';
     if (sKg) sKg.textContent = rupee(spot.silver_per_kg_inr) + ' / kg';
     if (date) date.textContent = lastFetchAt ? istClock(lastFetchAt) : (spot.for_date || '');
-    if (note) note.textContent = 'India 24k · IBJA + GST · same as Google gold/silver';
+    if (note) note.textContent = ibjaNote(spot);
     if (errorBox) {
       errorBox.hidden = true;
       errorBox.textContent = '';
@@ -87,7 +97,7 @@
     if (!clockEl || !lastFetchAt) return;
     clockEl.textContent = istClock(lastFetchAt);
     if (noteEl && isLiveSpot(liveSpot)) {
-      noteEl.textContent = 'India 24k · IBJA + GST · same as Google gold/silver';
+      noteEl.textContent = ibjaNote(liveSpot);
     }
   };
 

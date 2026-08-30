@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
-use App\Core\Uploader;
 use App\Models\AboutSection;
 
 final class AboutController extends BaseController
@@ -18,7 +17,7 @@ final class AboutController extends BaseController
     {
         $this->requireCsrf();
         \App\Core\SitePages::saveMenuFromRequest('about');
-        $keys = ['page_hero', 'foundation', 'founders_intro', 'history', 'mission', 'vision', 'who_we_are'];
+        $keys = ['page_hero', 'foundation', 'history', 'mission', 'vision', 'who_we_are'];
         $existing = AboutSection::keyed();
         foreach ($keys as $key) {
             $row = $existing[$key] ?? [];
@@ -65,62 +64,6 @@ final class AboutController extends BaseController
             ]);
         }
         flash('success', 'Page saved.');
-        redirect('/admin/pages/about');
-    }
-
-    public function storeFounder(): void
-    {
-        $this->requireCsrf();
-        try {
-            $photo = $this->storeImage('photo', 'founders', null);
-        } catch (\RuntimeException $e) {
-            flash('error', $e->getMessage());
-            redirect('/admin/pages/about');
-        }
-        $this->db()->insert('founders', [
-            'name' => faith_terms_store(trim((string) $_POST['name'])),
-            'designation' => faith_terms_store(trim((string) ($_POST['designation'] ?? ''))),
-            'biography' => faith_terms_store(trim((string) ($_POST['biography'] ?? ''))),
-            'photo' => $photo,
-            'sort_order' => (int) ($_POST['sort_order'] ?? 0),
-            'status' => ($_POST['status'] ?? 'published') === 'draft' ? 'draft' : 'published',
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
-        flash('success', 'Founder member added.');
-        redirect('/admin/pages/about');
-    }
-
-    public function updateFounder(string $id): void
-    {
-        $this->requireCsrf();
-        $row = $this->db()->fetch('SELECT * FROM founders WHERE id = ?', [(int) $id]);
-        if (!$row) {
-            redirect('/admin/pages/about');
-        }
-        $photo = $this->storeImage('photo', 'founders', $row['photo']);
-        $this->db()->update('founders', [
-            'name' => faith_terms_store(trim((string) $_POST['name'])),
-            'designation' => faith_terms_store(trim((string) ($_POST['designation'] ?? ''))),
-            'biography' => faith_terms_store(trim((string) ($_POST['biography'] ?? ''))),
-            'photo' => $photo,
-            'sort_order' => (int) ($_POST['sort_order'] ?? 0),
-            'status' => ($_POST['status'] ?? 'published') === 'draft' ? 'draft' : 'published',
-            'updated_at' => date('Y-m-d H:i:s'),
-        ], 'id = ?', [(int) $id]);
-        flash('success', 'Founder updated.');
-        redirect('/admin/pages/about');
-    }
-
-    public function destroyFounder(string $id): void
-    {
-        $this->requireCsrf();
-        $row = $this->db()->fetch('SELECT * FROM founders WHERE id = ?', [(int) $id]);
-        if ($row) {
-            Uploader::delete($row['photo']);
-            $this->db()->delete('founders', 'id = ?', [(int) $id]);
-        }
-        flash('success', 'Founder removed.');
         redirect('/admin/pages/about');
     }
 }

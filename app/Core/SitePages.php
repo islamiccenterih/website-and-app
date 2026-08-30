@@ -36,8 +36,10 @@ final class SitePages
                 'module' => 'about',
                 'copy' => null,
                 'fields' => [],
-                'blurb' => 'Banner, history, mission, vision, and founders.',
-                'actions' => [],
+                'blurb' => 'Banner, history, mission, vision, and coordinators.',
+                'actions' => [
+                    ['href' => '/admin/coordinators', 'label' => 'Coordinator Info'],
+                ],
             ],
             'courses' => [
                 'name' => 'Courses',

@@ -101,7 +101,6 @@ final class PagesController extends BaseController
         } elseif ($key === 'about') {
             $data['embed'] = 'about';
             $data['sections'] = present_section_map(\App\Models\AboutSection::keyed());
-            $data['founders'] = present_copy_tree($this->db()->fetchAll('SELECT * FROM founders ORDER BY sort_order ASC, id ASC'));
         } elseif ($key === 'contact') {
             $data['embed'] = 'contact';
         } elseif ($key === 'qibla') {

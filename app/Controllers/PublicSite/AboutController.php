@@ -7,6 +7,7 @@ namespace App\Controllers\PublicSite;
 use App\Core\Controller;
 use App\Core\Html;
 use App\Models\AboutSection;
+use App\Services\CoordinatorService;
 
 final class AboutController extends Controller
 {
@@ -48,10 +49,8 @@ final class AboutController extends Controller
             'sections' => $sections,
             'timeline' => is_array($timeline['timeline'] ?? null) ? $timeline['timeline'] : [],
             'foundationMeta' => $foundationMeta,
-            'founders' => $this->db()->fetchAll(
-                'SELECT * FROM founders WHERE status = ? ORDER BY sort_order ASC, id ASC',
-                ['published']
-            ),
+            'coordinators' => CoordinatorService::published(),
+            'coordinatorIntro' => $sections['founders_intro'] ?? [],
         ]);
     }
 }

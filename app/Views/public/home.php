@@ -57,6 +57,7 @@ $pillars = [
         <?php if ($heroDuaAr !== ''): ?>
             <div class="hero-dua" data-hero-dua hidden aria-hidden="true">
                 <div class="hero-dua-box">
+                    <span class="hero-dua-flash" aria-hidden="true"></span>
                     <button class="hero-dua-close" type="button" data-hero-dua-close aria-label="<?= e(tt('Close dua')) ?>">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -157,7 +158,12 @@ $pillars = [
     </div>
 </section>
 
-<section class="section section-sand">
+<?php
+$coordinatorSand = true;
+require APP_PATH . '/Views/components/coordinator-section.php';
+?>
+
+<section class="section">
     <div class="container">
         <?php
         $kicker = $sections['programs_intro']['subtitle'] ?? 'What We Offer';
