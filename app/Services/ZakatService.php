@@ -66,29 +66,26 @@ final class ZakatService
         }
 
         $stored = HttpJson::read(PUBLIC_PATH . '/assets/data/zakat-spot.json');
-        $haveFallback = is_array($stored) && !empty($stored['gold_per_gram_inr']);
-        if ($haveFallback) {
+        if (is_array($stored) && !empty($stored['gold_per_gram_inr'])) {
             $stored['ok'] = true;
             $stored['stale'] = ($stored['for_date'] ?? '') !== $today;
             $stored['error'] = null;
             return $this->withConfig($stored, $cfg);
         }
 
-        try {
-            $fresh = $this->fetchSpot($today);
-            $this->persist($fresh);
-            return $this->withConfig($fresh, $cfg);
-        } catch (\Throwable) {
-            return $this->withConfig([
-                'ok' => false,
-                'error' => 'Metal prices are temporarily unavailable. Try again in a moment.',
-                'for_date' => $today,
-                'gold_per_gram_inr' => 0,
-                'silver_per_gram_inr' => 0,
-                'usd_inr' => 0,
-                'stale' => false,
-            ], $cfg);
-        }
+        // Never call outbound metal APIs while rendering HTML. Cloudways PHP
+        // outbound often hangs; the page paints from this file and zakat.js
+        // loads today’s IBJA rates in the visitor’s browser.
+        return $this->withConfig([
+            'ok' => false,
+            'live' => false,
+            'stale' => true,
+            'error' => 'Live gold and silver rates load in the browser.',
+            'for_date' => $today,
+            'gold_per_gram_inr' => 0,
+            'silver_per_gram_inr' => 0,
+            'usd_inr' => 0,
+        ], $cfg);
     }
 
     /**

@@ -52,8 +52,8 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="<?= e(site_name()) ?>">
     <link rel="preload" href="<?= e(asset('assets/fonts/merriweather-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=90">
-    <script src="<?= e(asset('assets/js/recite.js')) ?>?v=3" defer></script>
+    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=94">
+    <script src="<?= e(asset('assets/js/recite.js')) ?>?v=4" defer></script>
     <script src="<?= e(asset('assets/js/live-worship.js')) ?>?v=7" defer></script>
 </head>
 <body class="<?= faith_terms_active() ? 'has-faith-terms' : '' ?>">
@@ -183,7 +183,7 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
     </svg>
     <span data-scroll-pct>0%</span>
 </button>
-<script src="<?= e(asset('assets/js/app.js')) ?>?v=22" defer></script>
+<script src="<?= e(asset('assets/js/app.js')) ?>?v=23" defer></script>
 <script src="<?= e(asset('assets/js/prayer-times.js')) ?>?v=7" defer></script>
 </body>
 </html>

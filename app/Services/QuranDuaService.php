@@ -11,7 +11,7 @@ namespace App\Services;
 final class QuranDuaService
 {
     /**
-     * @return array{arabic:string,hindi:string,surah:string,ayah:string}
+     * @return array{arabic:string,english:string,hindi:string,urdu:string,surah:string,ayah:string}
      */
     public static function current(?\DateTimeInterface $now = null): array
     {
@@ -29,7 +29,9 @@ final class QuranDuaService
 
         return [
             'arabic' => $row['ar'],
+            'english' => $row['tr']['en'] ?? '',
             'hindi' => $row['tr']['hi'] ?? $row['tr']['en'],
+            'urdu' => $row['tr']['ur'] ?? '',
             'surah' => $row['surah'],
             'ayah' => $row['ayah'],
         ];

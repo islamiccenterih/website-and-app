@@ -29,6 +29,15 @@ RewriteEngine On
   ExpiresByType image/jpeg "access plus 30 days"
   ExpiresByType image/png "access plus 30 days"
   ExpiresByType image/webp "access plus 30 days"
+  ExpiresByType audio/mpeg "access plus 30 days"
+  ExpiresByType audio/wav "access plus 30 days"
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType audio/mpeg .mp3
+  AddType audio/wav .wav
+  AddType audio/ogg .ogg
+  AddType audio/mp4 .m4a
 </IfModule>
 
 <IfModule mod_deflate.c>

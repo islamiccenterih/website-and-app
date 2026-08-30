@@ -155,6 +155,17 @@
     paintPlaying();
   };
 
+  const getJson = (url, ms) => {
+    const ctrl = new AbortController();
+    const timer = window.setTimeout(() => ctrl.abort(), ms || 10000);
+    return fetch(url, { signal: ctrl.signal, cache: 'default', headers: { Accept: 'application/json' } })
+      .then((res) => {
+        if (!res.ok) throw new Error('http');
+        return res.json();
+      })
+      .finally(() => window.clearTimeout(timer));
+  };
+
   const load = (n) => {
     stopPlay();
     showErr('');
@@ -165,12 +176,9 @@
       'https://api.alquran.cloud/v1/surah/' + n + '/editions/quran-uthmani,en.sahih,ur.jalandhry',
       'https://api.alquran.cloud/v1/surah/' + n + '/editions/quran-uthmani,en.sahih',
     ];
-    const tryUrl = (i) => fetch(urls[i], { cache: 'force-cache' }).then((res) => res.json()).then((payload) => {
+    const tryUrl = (i) => getJson(urls[i], 10000).then((payload) => {
       const editions = Array.isArray(payload.data) ? payload.data : [];
-      if (!editions.length) {
-        if (i + 1 < urls.length) return tryUrl(i + 1);
-        throw new Error('empty');
-      }
+      if (!editions.length) throw new Error('empty');
       const pick = (id) => editions.find((ed) => ed.edition && ed.edition.identifier === id) || null;
       const ar = pick('quran-uthmani') || editions[0];
       const en = pick('en.sahih');
@@ -186,6 +194,9 @@
         hi: hi && hi.ayahs && hi.ayahs[idx] ? hi.ayahs[idx].text : '',
       }));
       render(search.value);
+    }).catch(() => {
+      if (i + 1 < urls.length) return tryUrl(i + 1);
+      throw new Error('empty');
     });
     tryUrl(0).catch(() => {
       showErr('The Qur’an text could not be loaded. Check your connection and try again.');

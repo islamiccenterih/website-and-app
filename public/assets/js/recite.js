@@ -83,6 +83,7 @@
 
   const stop = () => {
     token += 1;
+    window.clearTimeout(failTimer);
     audio.onended = null;
     audio.onerror = null;
     try { audio.pause(); audio.removeAttribute('src'); } catch (e) {}
@@ -96,8 +97,10 @@
     try { document.dispatchEvent(new CustomEvent('ic-recite-stop')); } catch (e) {}
   };
 
+  let failTimer = 0;
   const startItem = (my, urlI) => {
     if (my !== token) return;
+    window.clearTimeout(failTimer);
     const item = queue[qi];
     if (!item) {
       stop();
@@ -122,6 +125,7 @@
       qi += 1;
       startItem(my, 0);
     };
+    failTimer = window.setTimeout(() => startItem(my, urlI + 1), 8000);
     audio.src = list[urlI];
     audio.play().catch(() => startItem(my, urlI + 1));
   };

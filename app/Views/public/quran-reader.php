@@ -34,4 +34,4 @@
         </div>
     </div>
 </section>
-<script src="<?= e(asset('assets/js/quran-reader.js')) ?>?v=3" defer></script>
+<script src="<?= e(asset('assets/js/quran-reader.js')) ?>?v=4" defer></script>

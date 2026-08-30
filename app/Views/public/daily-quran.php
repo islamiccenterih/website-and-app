@@ -16,7 +16,7 @@
         data-api="<?= e(url('/api/faith/daily')) ?>"
         data-ayah-kicker="<?= e(page_copy('daily_quran', 'ayah_kicker', 'Ayah of the day')) ?>"
         data-hadith-kicker="<?= e(page_copy('daily_quran', 'hadith_kicker', 'Hadith of the day')) ?>">
-        <p class="ft-live-note" data-dq-date>Loading today’s ayah…</p>
+        <p class="ft-live-note" data-dq-date>India · <?= e((new DateTimeImmutable('now', new DateTimeZone('Asia/Kolkata')))->format('Y-m-d')) ?></p>
         <article class="ft-panel ft-ayah-card">
             <div class="ft-dua-head">
                 <p class="ft-kicker" data-dq-ayah-kicker><?= e(page_copy('daily_quran', 'ayah_kicker', 'Ayah of the day')) ?></p>
@@ -27,9 +27,9 @@
                 <span>English</span>
                 <p class="ft-tr" data-dq-en><?= e((string) ($fallbackAyah['english'] ?? '')) ?></p>
             </div>
-            <div class="ft-lang" lang="ur" dir="rtl" data-dq-ur-box hidden>
+            <div class="ft-lang" lang="ur" dir="rtl" data-dq-ur-box<?= trim((string) ($fallbackAyah['urdu'] ?? '')) === '' ? ' hidden' : '' ?>>
                 <span>اردو</span>
-                <p class="ft-ur" data-dq-ur></p>
+                <p class="ft-ur" data-dq-ur><?= e((string) ($fallbackAyah['urdu'] ?? '')) ?></p>
             </div>
             <div class="ft-lang" lang="hi" data-dq-hi-box hidden>
                 <span>हिन्दी</span>
@@ -56,4 +56,4 @@
     </div>
 </section>
 <script type="application/json" data-dq-hadith><?= json_encode($hadith ?? [], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?></script>
-<script src="<?= e(asset('assets/js/daily-quran.js')) ?>?v=4" defer></script>
+<script src="<?= e(asset('assets/js/daily-quran.js')) ?>?v=5" defer></script>
