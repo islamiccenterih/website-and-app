@@ -121,10 +121,14 @@
       ? ['fajr', 'jummah', 'asr', 'maghrib', 'isha']
       : ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'];
     let current = 'isha';
+    const times = [];
     order.forEach((key) => {
       const card = root.querySelector('[data-prayer-card="' + key + '"]');
       const label = card ? card.querySelector('[data-prayer-time]') : null;
       const value = minutesFromLabel(label ? label.textContent : '');
+      const name = card ? (card.querySelector('h3')?.textContent || key) : key;
+      const pretty = label ? label.textContent : '';
+      if (value !== null) times.push({ key, name, value, pretty });
       if (value !== null && clock.minutes >= value) {
         current = key;
       }
@@ -132,6 +136,37 @@
     root.querySelectorAll('[data-prayer-card]').forEach((card) => {
       card.classList.toggle('is-now', card.getAttribute('data-prayer-card') === current);
     });
+    paintNext(times, clock);
+  };
+
+  let lastAlert = '';
+  const paintNext = (times, clock) => {
+    const box = root.querySelector('[data-next-prayer]');
+    if (!box || !times.length) return;
+    let next = times.find((row) => row.value > clock.minutes);
+    let extra = 0;
+    if (!next) {
+      next = times[0];
+      extra = 24 * 60;
+    }
+    const left = extra + next.value - clock.minutes;
+    const h = Math.floor(left / 60);
+    const m = left % 60;
+    const leftText = h > 0 ? (h + ' hr ' + m + ' min baqi') : (m + ' min baqi');
+    box.hidden = false;
+    const nameEl = box.querySelector('[data-next-name]');
+    const clockEl = box.querySelector('[data-next-clock]');
+    const leftEl = box.querySelector('[data-next-left]');
+    if (nameEl) nameEl.textContent = next.name;
+    if (clockEl) clockEl.textContent = next.pretty;
+    if (leftEl) leftEl.textContent = left <= 0 ? 'Adhan time' : leftText;
+    const stamp = (root.getAttribute('data-date') || '') + ':' + next.key;
+    if (left === 0 && lastAlert !== stamp && Notification.permission === 'granted') {
+      lastAlert = stamp;
+      try {
+        new Notification(next.name + ' · ' + next.pretty, { body: 'Prayer time for ' + (root.getAttribute('data-city') || 'your city'), icon: '/assets/img/favicon.png' });
+      } catch (e) {}
+    }
   };
 
   const loadTimes = (city) => {
@@ -213,5 +248,31 @@
   }, 1000);
   if (window.ICLive && typeof ICLive.watchFresh === 'function') {
     ICLive.watchFresh(() => loadTimes(activeCity));
+  }
+
+  let deferredPrompt = null;
+  const installBtn = root.querySelector('[data-pwa-install]');
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+    if (installBtn) installBtn.hidden = false;
+  });
+  installBtn?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt = null;
+      return;
+    }
+    window.alert('On iPhone: tap Share, then Add to Home Screen. On Android Chrome: menu → Install app / Add to Home Screen.');
+  });
+  root.querySelector('[data-prayer-alert]')?.addEventListener('click', () => {
+    if (!('Notification' in window)) {
+      window.alert('This browser does not support prayer alerts.');
+      return;
+    }
+    Notification.requestPermission();
+  });
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
 })();

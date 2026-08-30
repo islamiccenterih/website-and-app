@@ -64,6 +64,7 @@ final class PagesController extends BaseController
                 'heading' => trim((string) ($copy['title'] ?? '')),
                 'in_header' => $menu['in_header'],
                 'in_footer' => $menu['in_footer'],
+                'placement' => (string) ($menu['placement'] ?? 'off'),
             ];
         }
         $this->screen('admin/pages/index', [
@@ -118,6 +119,16 @@ final class PagesController extends BaseController
             $data['duas'] = present_copy_tree((new \App\Services\RamadanService())->duas());
             $data['ramadan_city'] = (string) ($tools['ramadan_city'] ?? 'Firozabad');
             $data['ramadan_state'] = (string) ($tools['ramadan_state'] ?? 'Uttar Pradesh');
+        } elseif ($key === 'daily_quran') {
+            $faith = (new \App\Services\FaithContentService())->bundle();
+            $data['embed'] = 'daily_quran';
+            $data['faithHadith'] = $faith['hadith'];
+        } elseif (in_array($key, ['daily_duas', 'janazah', 'hajj_umrah'], true)) {
+            $faith = (new \App\Services\FaithContentService())->bundle();
+            $data['embed'] = $key;
+            $data['faithGroups'] = $faith['duas'];
+            $data['faithSteps'] = $faith['janazah'];
+            $data['faithHajj'] = $faith['hajj'];
         }
         $this->screen('admin/pages/edit', $data);
     }
@@ -130,16 +141,7 @@ final class PagesController extends BaseController
             flash('error', 'You cannot edit that page.');
             redirect('/admin/pages');
         }
-        $label = trim((string) ($_POST['menu_name'] ?? ''));
-        if ($label === '') {
-            $label = (string) $page['name'];
-        }
-        SitePages::applyMenu(
-            (string) $page['url'],
-            $label,
-            !empty($_POST['in_header']),
-            !empty($_POST['in_footer'])
-        );
+        SitePages::saveMenuFromRequest($key);
         $copyKey = (string) ($page['copy'] ?? '');
         $fields = is_array($page['fields'] ?? null) ? $page['fields'] : [];
         $postedCopy = is_array($_POST['copy'] ?? null) ? $_POST['copy'] : null;

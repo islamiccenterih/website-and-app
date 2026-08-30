@@ -20,6 +20,8 @@ if ($uri !== '/' && is_file($file) && !is_dir($file)) {
         'woff2' => 'font/woff2',
         'woff' => 'font/woff',
         'mp4' => 'video/mp4',
+        'json' => 'application/json; charset=utf-8',
+        'webmanifest' => 'application/manifest+json',
         'zip' => 'application/zip',
     ];
     if (isset($types[$ext])) {

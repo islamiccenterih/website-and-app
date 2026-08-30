@@ -349,5 +349,33 @@ window.ICLive = (() => {
     });
   };
 
-  return { prayerTimes, hijriToday, ramadanPage, metalSpot, moonWeek, istStamp, to12, watchFresh };
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const dmy = (d, m, y) => pad2(d) + '-' + pad2(m) + '-' + y;
+
+  const gToH = (day, month, year) => getJson('https://api.aladhan.com/v1/gToH?date=' + dmy(day, month, year), 8000)
+    .then((payload) => {
+      const h = payload.data && payload.data.hijri ? payload.data.hijri : {};
+      const g = payload.data && payload.data.gregorian ? payload.data.gregorian : {};
+      if (!h.year) throw new Error('Empty hijri');
+      return {
+        ok: true,
+        hijri: (h.day || '') + ' ' + ((h.month && h.month.en) || '') + ' ' + (h.year || '') + ' AH',
+        hijri_ar: (h.day || '') + ' ' + ((h.month && h.month.ar) || '') + ' ' + (h.year || ''),
+        gregorian: (g.day || '') + ' ' + ((g.month && g.month.en) || '') + ' ' + (g.year || ''),
+      };
+    });
+
+  const hToG = (day, month, year) => getJson('https://api.aladhan.com/v1/hToG?date=' + dmy(day, month, year), 8000)
+    .then((payload) => {
+      const h = payload.data && payload.data.hijri ? payload.data.hijri : {};
+      const g = payload.data && payload.data.gregorian ? payload.data.gregorian : {};
+      if (!g.year) throw new Error('Empty gregorian');
+      return {
+        ok: true,
+        hijri: (h.day || '') + ' ' + ((h.month && h.month.en) || '') + ' ' + (h.year || '') + ' AH',
+        gregorian: (g.weekday && g.weekday.en ? g.weekday.en + ', ' : '') + (g.day || '') + ' ' + ((g.month && g.month.en) || '') + ' ' + (g.year || ''),
+      };
+    });
+
+  return { prayerTimes, hijriToday, ramadanPage, metalSpot, moonWeek, istStamp, to12, watchFresh, gToH, hToG };
 })();

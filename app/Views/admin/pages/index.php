@@ -16,7 +16,8 @@ require APP_PATH . '/Views/components/section-head.php';
             <p class="page-card-url"><code><?= e($row['url']) ?></code></p>
             <h2 dir="auto"><?= e(ftc((string) $row['menu'])) ?></h2>
             <p class="page-card-flags">
-                <span class="badge <?= $row['in_header'] ? 'badge-on' : 'badge-off' ?>"><?= $row['in_header'] ? 'Header' : 'Not in header' ?></span>
+                <?php $placement = (string) ($row['placement'] ?? ($row['in_header'] ? 'primary' : 'off')); ?>
+                <span class="badge <?= $placement === 'off' ? 'badge-off' : 'badge-on' ?>"><?= e(header_group_label($placement)) ?></span>
                 <span class="badge <?= $row['in_footer'] ? 'badge-on' : 'badge-off' ?>"><?= $row['in_footer'] ? 'Footer' : 'Not in footer' ?></span>
             </p>
             <p class="dash-actions">
@@ -26,4 +27,4 @@ require APP_PATH . '/Views/components/section-head.php';
         </article>
     <?php endforeach; ?>
 </div>
-<p class="help">Courses, photos, and other lists stay in the sidebar. Site name and logo are in <a href="<?= e(url('/admin/settings')) ?>">Settings</a>. Extra header links are in <a href="<?= e(url('/admin/footer')) ?>">Header &amp; Footer</a>.</p>
+<p class="help">Open a page to put it in the top menu, the More dropdown, or Daily use — or to hide it. Extra custom links are in <a href="<?= e(url('/admin/footer')) ?>">Header &amp; Footer</a>. Site name and logo are in <a href="<?= e(url('/admin/settings')) ?>">Settings</a>.</p>

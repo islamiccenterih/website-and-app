@@ -2,13 +2,17 @@
 $navSplit = header_nav_split();
 $navPrimary = $navSplit['primary'];
 $navMore = $navSplit['more'];
-$navMoreOpen = false;
-foreach ($navMore as $moreItem) {
-    if (!str_starts_with((string) $moreItem['url'], 'http') && is_active((string) $moreItem['url'])) {
-        $navMoreOpen = true;
-        break;
+$navDaily = $navSplit['daily'];
+$navDropOpen = static function (array $items): bool {
+    foreach ($items as $item) {
+        if (!str_starts_with((string) $item['url'], 'http') && is_active((string) $item['url'])) {
+            return true;
+        }
     }
-}
+    return false;
+};
+$navMoreOpen = $navDropOpen($navMore);
+$navDailyOpen = $navDropOpen($navDaily);
 $logo = setting('logo_image');
 $loginLabel = tt((string) setting('header_login_label', 'Student Login') ?: 'Student Login');
 $lang = \App\I18n\Lang::code();
@@ -42,9 +46,15 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
         <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS) ?></script>
     <?php endif; ?>
     <link rel="icon" href="<?= e(asset('assets/img/favicon.png')) ?>">
+    <link rel="apple-touch-icon" href="<?= e($logo ? upload_url($logo) : asset('assets/img/logo.png')) ?>">
+    <link rel="manifest" href="<?= e(asset('manifest.webmanifest')) ?>">
+    <meta name="theme-color" content="#0e2a22">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="<?= e(site_name()) ?>">
     <link rel="preload" href="<?= e(asset('assets/fonts/merriweather-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=86">
-    <script src="<?= e(asset('assets/js/live-worship.js')) ?>?v=6" defer></script>
+    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=90">
+    <script src="<?= e(asset('assets/js/recite.js')) ?>?v=3" defer></script>
+    <script src="<?= e(asset('assets/js/live-worship.js')) ?>?v=7" defer></script>
 </head>
 <body class="<?= faith_terms_active() ? 'has-faith-terms' : '' ?>">
 <a class="skip-link" href="#main"><?= e(tt('Skip to content')) ?></a>
@@ -83,14 +93,24 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
                             ?>
                             <li><a href="<?= e($href) ?>" class="<?= !str_starts_with($path, 'http') && is_active($path) ? 'is-active' : '' ?>"><?= e($item['label']) ?></a></li>
                         <?php endforeach; ?>
-                        <?php if ($navMore): ?>
-                            <li class="nav-more<?= $navMoreOpen ? ' has-active' : '' ?>" data-nav-more>
-                                <button type="button" class="nav-more-btn<?= $navMoreOpen ? ' is-active' : '' ?>" data-nav-more-btn aria-expanded="false" aria-haspopup="true" aria-controls="nav-more-menu">
-                                    <?= e(tt('More')) ?>
+                        <?php
+                        $navDrops = [
+                            ['id' => 'daily', 'label' => tt('Daily use'), 'items' => $navDaily, 'open' => $navDailyOpen],
+                            ['id' => 'more', 'label' => tt('More'), 'items' => $navMore, 'open' => $navMoreOpen],
+                        ];
+                        foreach ($navDrops as $drop):
+                            if (!$drop['items']) {
+                                continue;
+                            }
+                            $menuId = 'nav-' . $drop['id'] . '-menu';
+                            ?>
+                            <li class="nav-more<?= $drop['open'] ? ' has-active' : '' ?>" data-nav-drop>
+                                <button type="button" class="nav-more-btn<?= $drop['open'] ? ' is-active' : '' ?>" data-nav-drop-btn aria-expanded="false" aria-haspopup="true" aria-controls="<?= e($menuId) ?>">
+                                    <?= e($drop['label']) ?>
                                     <span class="nav-more-caret" aria-hidden="true"></span>
                                 </button>
-                                <ul class="nav-more-menu" id="nav-more-menu">
-                                    <?php foreach ($navMore as $item):
+                                <ul class="nav-more-menu" id="<?= e($menuId) ?>">
+                                    <?php foreach ($drop['items'] as $item):
                                         $path = $item['url'];
                                         $href = str_starts_with($path, 'http') ? $path : url($path);
                                         ?>
@@ -98,7 +118,7 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
                                     <?php endforeach; ?>
                                 </ul>
                             </li>
-                        <?php endif; ?>
+                        <?php endforeach; ?>
                     </ul>
                     <a class="btn-header nav-panel-cta" href="<?= e(url('/student/login')) ?>"><?= e($loginLabel) ?></a>
                     <?php if (public_live_broadcast()): ?>
@@ -163,7 +183,7 @@ if ($legalHeading === '' || strcasecmp($legalHeading, 'Explore') === 0) {
     </svg>
     <span data-scroll-pct>0%</span>
 </button>
-<script src="<?= e(asset('assets/js/app.js')) ?>?v=21" defer></script>
-<script src="<?= e(asset('assets/js/prayer-times.js')) ?>?v=6" defer></script>
+<script src="<?= e(asset('assets/js/app.js')) ?>?v=22" defer></script>
+<script src="<?= e(asset('assets/js/prayer-times.js')) ?>?v=7" defer></script>
 </body>
 </html>

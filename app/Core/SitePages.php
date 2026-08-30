@@ -97,8 +97,8 @@ final class SitePages
                 'url' => '/islamic-calendar',
                 'module' => 'calendar',
                 'copy' => 'calendar',
-                'fields' => ['kicker', 'title', 'lead'],
-                'blurb' => 'Calendar headings. Months are added from Islamic Calendar.',
+                'fields' => ['kicker', 'title', 'lead', 'converter_kicker', 'converter_title', 'converter_lead'],
+                'blurb' => 'Calendar headings and the Hijri ↔ English converter. Months are added from Islamic Calendar.',
                 'actions' => [
                     ['href' => '/admin/calendar', 'label' => 'Manage calendar months'],
                 ],
@@ -148,6 +148,78 @@ final class SitePages
                 'copy' => 'holidays',
                 'fields' => ['kicker', 'title', 'lead'],
                 'blurb' => 'Eid and other Islamic dates observed in India.',
+                'actions' => [],
+            ],
+            'daily_quran' => [
+                'name' => 'Daily Quran',
+                'url' => '/daily-quran',
+                'module' => 'pages',
+                'copy' => 'daily_quran',
+                'fields' => ['kicker', 'title', 'lead', 'ayah_kicker', 'hadith_kicker', 'notes'],
+                'blurb' => 'Today’s ayah, short tafsir, and a hadith — with WhatsApp share.',
+                'actions' => [],
+            ],
+            'daily_duas' => [
+                'name' => 'Daily Duas',
+                'url' => '/daily-duas',
+                'module' => 'pages',
+                'copy' => 'daily_duas',
+                'fields' => ['kicker', 'title', 'lead'],
+                'blurb' => 'Morning, evening, food, travel, home, illness, and janazah duas.',
+                'actions' => [],
+            ],
+            'allah_names' => [
+                'name' => '99 Allah Names',
+                'url' => '/99-allah-names',
+                'module' => 'pages',
+                'copy' => 'allah_names',
+                'fields' => ['kicker', 'title', 'lead', 'help'],
+                'blurb' => 'Asma ul Husna with meaning and recitation.',
+                'actions' => [],
+            ],
+            'quran_reader' => [
+                'name' => 'Quran Reader',
+                'url' => '/quran-reader',
+                'module' => 'pages',
+                'copy' => 'quran_reader',
+                'fields' => ['kicker', 'title', 'lead', 'help'],
+                'blurb' => 'Read, search, and listen to the Qur’an with Urdu and Hindi meaning.',
+                'actions' => [],
+            ],
+            'family_shares' => [
+                'name' => 'Family Shares',
+                'url' => '/family-shares',
+                'module' => 'pages',
+                'copy' => 'family_shares',
+                'fields' => ['kicker', 'title', 'lead', 'notes_title', 'notes'],
+                'blurb' => 'Mirath calculator — who receives what after a death (Hanafi estimate).',
+                'actions' => [],
+            ],
+            'janazah' => [
+                'name' => 'Janazah Steps',
+                'url' => '/janazah-steps',
+                'module' => 'pages',
+                'copy' => 'janazah',
+                'fields' => ['kicker', 'title', 'lead'],
+                'blurb' => 'Ghusl, kafan, janazah salah, and burial — with duas.',
+                'actions' => [],
+            ],
+            'hajj_umrah' => [
+                'name' => 'Hajj & Umrah',
+                'url' => '/hajj-umrah',
+                'module' => 'pages',
+                'copy' => 'hajj_umrah',
+                'fields' => ['kicker', 'title', 'lead'],
+                'blurb' => 'Hajj and Umrah checklist with the main duas.',
+                'actions' => [],
+            ],
+            'tasbeeh' => [
+                'name' => 'Daily Tasbeeh',
+                'url' => '/daily-tasbeeh',
+                'module' => 'pages',
+                'copy' => 'tasbeeh',
+                'fields' => ['kicker', 'title', 'lead', 'help'],
+                'blurb' => 'Digital tasbeeh — tap to count; every 100 is saved as a completed set.',
                 'actions' => [],
             ],
             'updates' => [
@@ -257,30 +329,35 @@ final class SitePages
     }
 
     /**
-     * @return array{label:string,in_header:bool,in_footer:bool,has_header:bool,has_footer:bool}
+     * @return array{label:string,in_header:bool,in_footer:bool,has_header:bool,has_footer:bool,group:string,placement:string}
      */
     public static function menuState(string $url): array
     {
         $header = self::findLink(header_nav_all(), $url);
         $footer = self::findLink(footer_links_all(), $url);
         $label = (string) (($header['label'] ?? '') !== '' ? $header['label'] : ($footer['label'] ?? ''));
+        $inHeader = $header !== null && empty($header['hidden']);
+        $group = (string) ($header['group'] ?? default_nav_group($url));
         return [
             'label' => $label,
-            'in_header' => $header !== null && empty($header['hidden']),
+            'in_header' => $inHeader,
             'in_footer' => $footer !== null && empty($footer['hidden']),
             'has_header' => $header !== null,
             'has_footer' => $footer !== null,
+            'group' => $group,
+            'placement' => $inHeader ? $group : 'off',
         ];
     }
 
-    public static function applyMenu(string $url, string $label, bool $inHeader, bool $inFooter): void
+    public static function applyMenu(string $url, string $label, bool $inHeader, bool $inFooter, string $group = ''): void
     {
         $label = mb_substr(faith_terms_store(trim($label)), 0, 160);
         if ($label === '') {
             return;
         }
+        $group = normalize_nav_group($group, $url);
         Setting::put('header_nav', json_encode(
-            self::upsertLink(header_nav_all(), $url, $label, $inHeader),
+            self::upsertLink(header_nav_all(), $url, $label, $inHeader, $group),
             JSON_UNESCAPED_UNICODE
         ));
         Setting::put('footer_links', json_encode(
@@ -302,12 +379,33 @@ final class SitePages
         if ($label === '') {
             $label = (string) $page['name'];
         }
+        $url = (string) $page['url'];
+        [$inHeader, $group] = self::postedHeaderPlacement($url);
         self::applyMenu(
-            (string) $page['url'],
+            $url,
             $label,
-            !empty($_POST['in_header']),
-            !empty($_POST['in_footer'])
+            $inHeader,
+            !empty($_POST['in_footer']),
+            $group
         );
+    }
+
+    /**
+     * @return array{0:bool,1:string}
+     */
+    public static function postedHeaderPlacement(string $url): array
+    {
+        $posted = strtolower(trim((string) ($_POST['header_group'] ?? '')));
+        if (in_array($posted, ['primary', 'more', 'daily'], true)) {
+            return [true, $posted];
+        }
+        if ($posted === 'off' || $posted === 'none') {
+            return [false, default_nav_group($url)];
+        }
+        if (array_key_exists('in_header', $_POST)) {
+            return [!empty($_POST['in_header']), default_nav_group($url)];
+        }
+        return [true, default_nav_group($url)];
     }
 
     /**
@@ -392,6 +490,57 @@ final class SitePages
                 'kicker' => 'Hijri months',
                 'title' => 'Islamic Calendar',
                 'lead' => 'Today’s Hijri date, the full month, and the days of worship — kept on this site so the calendar stays with the center.',
+                'converter_kicker' => 'Convert a date',
+                'converter_title' => 'Hijri ↔ English',
+                'converter_lead' => 'See today’s Islamic date, or convert any English date to Hijri and any Hijri date to English.',
+            ],
+            'daily_quran' => [
+                'kicker' => 'Today’s recitation',
+                'title' => 'Daily Quran',
+                'lead' => 'An ayah for today, a short tafsir, and a hadith — new each morning (India time). Share it on WhatsApp.',
+                'ayah_kicker' => 'Ayah of the day',
+                'hadith_kicker' => 'Hadith of the day',
+                'notes' => '',
+            ],
+            'daily_duas' => [
+                'kicker' => 'Words for the day',
+                'title' => 'Daily Duas',
+                'lead' => 'Duas for morning and evening, food, travel, the home, illness, and janazah — Arabic, how to read it, and meaning.',
+            ],
+            'allah_names' => [
+                'kicker' => 'Asma ul Husna',
+                'title' => '99 Allah Names',
+                'lead' => 'The ninety-nine beautiful names. Tap a name to hear it, and read the meaning in English.',
+                'help' => 'Tap Play to hear this name.',
+            ],
+            'quran_reader' => [
+                'kicker' => 'The Book',
+                'title' => 'Quran Reader',
+                'lead' => 'Open any surah, search an ayah, and listen. Arabic is the Tanzil Uthmani text. Urdu and Hindi meanings sit under each ayah.',
+                'help' => 'Audio is Mishary Rashid Alafasy via a public Qur’an CDN. Search looks inside the surah you opened, and across the English meaning.',
+            ],
+            'family_shares' => [
+                'kicker' => 'Mirath',
+                'title' => 'Family Shares',
+                'lead' => 'After someone dies, who receives what? Enter the estate and the close family. This is a Hanafi estimate for common cases — not a fatwa.',
+                'notes_title' => 'How to use this',
+                'notes' => 'This covers spouse, children, and parents (and brothers/sisters only when there is no son and no father). Grandparents, missing heirs, debts, wasiyyah, and ‘awl in rare mixes need a teacher. Figures are rounded. Ask the center before you divide property.',
+            ],
+            'janazah' => [
+                'kicker' => 'When a Muslim dies',
+                'title' => 'Janazah Steps',
+                'lead' => 'Ghusl, kafan, the janazah prayer, and burial — with the duas said at each step. Follow the imam at the center if the practice differs.',
+            ],
+            'hajj_umrah' => [
+                'kicker' => 'The journey',
+                'title' => 'Hajj & Umrah',
+                'lead' => 'A short checklist and the main duas for Umrah and Hajj. Ihram, Tawaf, Sa‘i, Arafah, and return — keep it with you on the road.',
+            ],
+            'tasbeeh' => [
+                'kicker' => 'Dhikr',
+                'title' => 'Daily Tasbeeh',
+                'lead' => 'Tap the circle. After every 100, a completed count is added. Reset clears everything on this phone.',
+                'help' => '100 taps = 1 completed hundred. 200 = 2, 300 = 3. Vibration plus a short tick on each tap. Reset clears the count.',
             ],
             'qibla' => [
                 'kicker' => 'Face the House of Allah',
@@ -505,22 +654,29 @@ final class SitePages
             'detail_lead' => 'Detail page introduction',
             'updated' => 'Last updated date',
             'body' => 'Full page text',
+            'ayah_kicker' => 'Ayah section tag',
+            'hadith_kicker' => 'Hadith section tag',
+            'converter_kicker' => 'Date converter tag',
+            'converter_title' => 'Date converter heading',
+            'converter_lead' => 'Date converter introduction',
         ];
     }
 
     /**
-     * @param list<array{label?:string,url?:string,hidden?:bool}> $links
-     * @return array{label:string,url:string,hidden:bool}|null
+     * @param list<array{label?:string,url?:string,hidden?:bool,group?:string}> $links
+     * @return array{label:string,url:string,hidden:bool,group:string}|null
      */
     private static function findLink(array $links, string $url): ?array
     {
         $want = nav_item_path($url);
         foreach ($links as $link) {
             if (nav_item_path((string) ($link['url'] ?? '')) === $want) {
+                $itemUrl = (string) ($link['url'] ?? '');
                 return [
                     'label' => (string) ($link['label'] ?? ''),
-                    'url' => (string) ($link['url'] ?? ''),
+                    'url' => $itemUrl,
                     'hidden' => !empty($link['hidden']),
+                    'group' => nav_item_group($link),
                 ];
             }
         }
@@ -528,10 +684,10 @@ final class SitePages
     }
 
     /**
-     * @param list<array{label?:string,url?:string,hidden?:bool}> $links
-     * @return list<array{label:string,url:string,hidden:bool}>
+     * @param list<array{label?:string,url?:string,hidden?:bool,group?:string}> $links
+     * @return list<array{label:string,url:string,hidden:bool,group:string}>
      */
-    private static function upsertLink(array $links, string $url, string $label, bool $visible): array
+    private static function upsertLink(array $links, string $url, string $label, bool $visible, string $group = ''): array
     {
         $want = nav_item_path($url);
         $found = false;
@@ -547,6 +703,7 @@ final class SitePages
                     'label' => $label,
                     'url' => $itemUrl,
                     'hidden' => !$visible,
+                    'group' => normalize_nav_group($group !== '' ? $group : (string) ($link['group'] ?? ''), $itemUrl),
                 ];
                 $found = true;
                 continue;
@@ -555,6 +712,7 @@ final class SitePages
                 'label' => $itemLabel,
                 'url' => $itemUrl,
                 'hidden' => !empty($link['hidden']),
+                'group' => nav_item_group($link),
             ];
         }
         if (!$found) {
@@ -562,6 +720,7 @@ final class SitePages
                 'label' => $label,
                 'url' => $url,
                 'hidden' => !$visible,
+                'group' => normalize_nav_group($group, $url),
             ];
         }
         return $out;

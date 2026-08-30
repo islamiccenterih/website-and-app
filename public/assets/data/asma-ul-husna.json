@@ -1,0 +1,695 @@
+[
+  {
+    "n": 1,
+    "ar": "الله",
+    "tr": "Allah",
+    "en": "The God",
+    "hi": "अल्लाह — एक माबूद"
+  },
+  {
+    "n": 2,
+    "ar": "الرَّحْمَٰنُ",
+    "tr": "Ar-Rahman",
+    "en": "The Most Merciful",
+    "hi": "सबसे अधिक रहम करने वाला"
+  },
+  {
+    "n": 3,
+    "ar": "الرَّحِيمُ",
+    "tr": "Ar-Raheem",
+    "en": "The Especially Merciful",
+    "hi": "बार-बार रहम करने वाला"
+  },
+  {
+    "n": 4,
+    "ar": "الْمَلِكُ",
+    "tr": "Al-Malik",
+    "en": "The King",
+    "hi": "बादशाह"
+  },
+  {
+    "n": 5,
+    "ar": "الْقُدُّوسُ",
+    "tr": "Al-Quddus",
+    "en": "The Pure",
+    "hi": "पाक"
+  },
+  {
+    "n": 6,
+    "ar": "السَّلَامُ",
+    "tr": "As-Salam",
+    "en": "The Source of Peace",
+    "hi": "सलामती वाला"
+  },
+  {
+    "n": 7,
+    "ar": "الْمُؤْمِنُ",
+    "tr": "Al-Mu'min",
+    "en": "The Giver of Faith",
+    "hi": "अमन देने वाला"
+  },
+  {
+    "n": 8,
+    "ar": "الْمُهَيْمِنُ",
+    "tr": "Al-Muhaymin",
+    "en": "The Guardian",
+    "hi": "निगरानी करने वाला"
+  },
+  {
+    "n": 9,
+    "ar": "الْعَزِيزُ",
+    "tr": "Al-Aziz",
+    "en": "The Almighty",
+    "hi": "ग़ालिब"
+  },
+  {
+    "n": 10,
+    "ar": "الْجَبَّارُ",
+    "tr": "Al-Jabbar",
+    "en": "The Compeller",
+    "hi": "जब्बार"
+  },
+  {
+    "n": 11,
+    "ar": "الْمُتَكَبِّرُ",
+    "tr": "Al-Mutakabbir",
+    "en": "The Supreme",
+    "hi": "बड़ाई वाला"
+  },
+  {
+    "n": 12,
+    "ar": "الْخَالِقُ",
+    "tr": "Al-Khaliq",
+    "en": "The Creator",
+    "hi": "पैदा करने वाला"
+  },
+  {
+    "n": 13,
+    "ar": "الْبَارِئُ",
+    "tr": "Al-Bari",
+    "en": "The Maker",
+    "hi": "अस्तित्व देने वाला"
+  },
+  {
+    "n": 14,
+    "ar": "الْمُصَوِّرُ",
+    "tr": "Al-Musawwir",
+    "en": "The Fashioner",
+    "hi": "सूरत बनाने वाला"
+  },
+  {
+    "n": 15,
+    "ar": "الْغَفَّارُ",
+    "tr": "Al-Ghaffar",
+    "en": "The Constant Forgiver",
+    "hi": "बहुत माफ़ करने वाला"
+  },
+  {
+    "n": 16,
+    "ar": "الْقَهَّارُ",
+    "tr": "Al-Qahhar",
+    "en": "The Subduer",
+    "hi": "सब पर गा़लिब"
+  },
+  {
+    "n": 17,
+    "ar": "الْوَهَّابُ",
+    "tr": "Al-Wahhab",
+    "en": "The Bestower",
+    "hi": "बहुत देने वाला"
+  },
+  {
+    "n": 18,
+    "ar": "الرَّزَّاقُ",
+    "tr": "Ar-Razzaq",
+    "en": "The Provider",
+    "hi": "रिज़्क़ देने वाला"
+  },
+  {
+    "n": 19,
+    "ar": "الْفَتَّاحُ",
+    "tr": "Al-Fattah",
+    "en": "The Opener",
+    "hi": "रास्ते खोलने वाला"
+  },
+  {
+    "n": 20,
+    "ar": "الْعَلِيمُ",
+    "tr": "Al-Alim",
+    "en": "The All-Knowing",
+    "hi": "सब जानने वाला"
+  },
+  {
+    "n": 21,
+    "ar": "الْقَابِضُ",
+    "tr": "Al-Qabid",
+    "en": "The Withholder",
+    "hi": "रोकने वाला"
+  },
+  {
+    "n": 22,
+    "ar": "الْبَاسِطُ",
+    "tr": "Al-Basit",
+    "en": "The Extender",
+    "hi": "फैलाव देने वाला"
+  },
+  {
+    "n": 23,
+    "ar": "الْخَافِضُ",
+    "tr": "Al-Khafid",
+    "en": "The Abaser",
+    "hi": "नीचा करने वाला"
+  },
+  {
+    "n": 24,
+    "ar": "الرَّافِعُ",
+    "tr": "Ar-Rafi",
+    "en": "The Exalter",
+    "hi": "ऊँचा करने वाला"
+  },
+  {
+    "n": 25,
+    "ar": "الْمُعِزُّ",
+    "tr": "Al-Mu'izz",
+    "en": "The Honourer",
+    "hi": "इज़्ज़त देने वाला"
+  },
+  {
+    "n": 26,
+    "ar": "الْمُذِلُّ",
+    "tr": "Al-Mudhill",
+    "en": "The Humiliator",
+    "hi": "ज़लील करने वाला"
+  },
+  {
+    "n": 27,
+    "ar": "السَّمِيعُ",
+    "tr": "As-Sami",
+    "en": "The All-Hearing",
+    "hi": "सब सुनने वाला"
+  },
+  {
+    "n": 28,
+    "ar": "الْبَصِيرُ",
+    "tr": "Al-Basir",
+    "en": "The All-Seeing",
+    "hi": "सब देखने वाला"
+  },
+  {
+    "n": 29,
+    "ar": "الْحَكَمُ",
+    "tr": "Al-Hakam",
+    "en": "The Judge",
+    "hi": "फ़ैसला करने वाला"
+  },
+  {
+    "n": 30,
+    "ar": "الْعَدْلُ",
+    "tr": "Al-Adl",
+    "en": "The Just",
+    "hi": "इनसाफ़ वाला"
+  },
+  {
+    "n": 31,
+    "ar": "اللَّطِيفُ",
+    "tr": "Al-Latif",
+    "en": "The Subtle",
+    "hi": "मेहरबान / बारीक"
+  },
+  {
+    "n": 32,
+    "ar": "الْخَبِيرُ",
+    "tr": "Al-Khabir",
+    "en": "The All-Aware",
+    "hi": "हर हाल जानने वाला"
+  },
+  {
+    "n": 33,
+    "ar": "الْحَلِيمُ",
+    "tr": "Al-Halim",
+    "en": "The Forbearing",
+    "hi": "हिल्म वाला"
+  },
+  {
+    "n": 34,
+    "ar": "الْعَظِيمُ",
+    "tr": "Al-Azim",
+    "en": "The Magnificent",
+    "hi": "अज़ीम"
+  },
+  {
+    "n": 35,
+    "ar": "الْغَفُورُ",
+    "tr": "Al-Ghafur",
+    "en": "The Forgiving",
+    "hi": "माफ़ करने वाला"
+  },
+  {
+    "n": 36,
+    "ar": "الشَّكُورُ",
+    "tr": "Ash-Shakur",
+    "en": "The Appreciative",
+    "hi": "शुक्र क़ुबूल करने वाला"
+  },
+  {
+    "n": 37,
+    "ar": "الْعَلِيُّ",
+    "tr": "Al-Ali",
+    "en": "The Most High",
+    "hi": "सबसे ऊँचा"
+  },
+  {
+    "n": 38,
+    "ar": "الْكَبِيرُ",
+    "tr": "Al-Kabir",
+    "en": "The Greatest",
+    "hi": "बहुत बड़ा"
+  },
+  {
+    "n": 39,
+    "ar": "الْحَفِيظُ",
+    "tr": "Al-Hafiz",
+    "en": "The Preserver",
+    "hi": "हिफ़ाज़त करने वाला"
+  },
+  {
+    "n": 40,
+    "ar": "الْمُقِيتُ",
+    "tr": "Al-Muqit",
+    "en": "The Nourisher",
+    "hi": "क़ूवत देने वाला"
+  },
+  {
+    "n": 41,
+    "ar": "الْحَسِيبُ",
+    "tr": "Al-Hasib",
+    "en": "The Reckoner",
+    "hi": "हिसाब लेने वाला"
+  },
+  {
+    "n": 42,
+    "ar": "الْجَلِيلُ",
+    "tr": "Al-Jalil",
+    "en": "The Majestic",
+    "hi": "जलाल वाला"
+  },
+  {
+    "n": 43,
+    "ar": "الْكَرِيمُ",
+    "tr": "Al-Karim",
+    "en": "The Generous",
+    "hi": "करीम"
+  },
+  {
+    "n": 44,
+    "ar": "الرَّقِيبُ",
+    "tr": "Ar-Raqib",
+    "en": "The Watchful",
+    "hi": "निगरान"
+  },
+  {
+    "n": 45,
+    "ar": "الْمُجِيبُ",
+    "tr": "Al-Mujib",
+    "en": "The Responsive",
+    "hi": "दुआ सुनने वाला"
+  },
+  {
+    "n": 46,
+    "ar": "الْوَاسِعُ",
+    "tr": "Al-Wasi",
+    "en": "The All-Encompassing",
+    "hi": "कुशादगी वाला"
+  },
+  {
+    "n": 47,
+    "ar": "الْحَكِيمُ",
+    "tr": "Al-Hakim",
+    "en": "The Wise",
+    "hi": "हिकमत वाला"
+  },
+  {
+    "n": 48,
+    "ar": "الْوَدُودُ",
+    "tr": "Al-Wadud",
+    "en": "The Most Loving",
+    "hi": "मुहब्बत करने वाला"
+  },
+  {
+    "n": 49,
+    "ar": "الْمَجِيدُ",
+    "tr": "Al-Majid",
+    "en": "The Glorious",
+    "hi": "बज़र्ग / मजीद"
+  },
+  {
+    "n": 50,
+    "ar": "الْبَاعِثُ",
+    "tr": "Al-Ba'ith",
+    "en": "The Resurrector",
+    "hi": "उठाने वाला"
+  },
+  {
+    "n": 51,
+    "ar": "الشَّهِيدُ",
+    "tr": "Ash-Shahid",
+    "en": "The Witness",
+    "hi": "गवाह"
+  },
+  {
+    "n": 52,
+    "ar": "الْحَقُّ",
+    "tr": "Al-Haqq",
+    "en": "The Truth",
+    "hi": "हक़"
+  },
+  {
+    "n": 53,
+    "ar": "الْوَكِيلُ",
+    "tr": "Al-Wakil",
+    "en": "The Trustee",
+    "hi": "कारساز"
+  },
+  {
+    "n": 54,
+    "ar": "الْقَوِيُّ",
+    "tr": "Al-Qawiyy",
+    "en": "The Strong",
+    "hi": "क़वी"
+  },
+  {
+    "n": 55,
+    "ar": "الْمَتِينُ",
+    "tr": "Al-Matin",
+    "en": "The Firm",
+    "hi": "मज़बूत"
+  },
+  {
+    "n": 56,
+    "ar": "الْوَلِيُّ",
+    "tr": "Al-Waliyy",
+    "en": "The Protecting Friend",
+    "hi": "दोस्त / सरपरस्त"
+  },
+  {
+    "n": 57,
+    "ar": "الْحَمِيدُ",
+    "tr": "Al-Hamid",
+    "en": "The Praiseworthy",
+    "hi": "तारीफ़ के लायक"
+  },
+  {
+    "n": 58,
+    "ar": "الْمُحْصِي",
+    "tr": "Al-Muhsi",
+    "en": "The Accounter",
+    "hi": "गिन्ती करने वाला"
+  },
+  {
+    "n": 59,
+    "ar": "الْمُبْدِئُ",
+    "tr": "Al-Mubdi",
+    "en": "The Originator",
+    "hi": "शुरू करने वाला"
+  },
+  {
+    "n": 60,
+    "ar": "الْمُعِيدُ",
+    "tr": "Al-Mu'id",
+    "en": "The Restorer",
+    "hi": "लौटाने वाला"
+  },
+  {
+    "n": 61,
+    "ar": "الْمُحْيِي",
+    "tr": "Al-Muhyi",
+    "en": "The Giver of Life",
+    "hi": "ज़िंदगी देने वाला"
+  },
+  {
+    "n": 62,
+    "ar": "الْمُمِيتُ",
+    "tr": "Al-Mumit",
+    "en": "The Bringer of Death",
+    "hi": "मौत देने वाला"
+  },
+  {
+    "n": 63,
+    "ar": "الْحَيُّ",
+    "tr": "Al-Hayy",
+    "en": "The Ever-Living",
+    "hi": "हमेशा ज़िंदा"
+  },
+  {
+    "n": 64,
+    "ar": "الْقَيُّومُ",
+    "tr": "Al-Qayyum",
+    "en": "The Self-Subsisting",
+    "hi": "सबको थामे रखने वाला"
+  },
+  {
+    "n": 65,
+    "ar": "الْوَاجِدُ",
+    "tr": "Al-Wajid",
+    "en": "The Finder",
+    "hi": "पा लेने वाला"
+  },
+  {
+    "n": 66,
+    "ar": "الْمَاجِدُ",
+    "tr": "Al-Majid",
+    "en": "The Noble",
+    "hi": "बड़प्पन वाला"
+  },
+  {
+    "n": 67,
+    "ar": "الْوَاحِدُ",
+    "tr": "Al-Wahid",
+    "en": "The One",
+    "hi": "एक"
+  },
+  {
+    "n": 68,
+    "ar": "الصَّمَدُ",
+    "tr": "As-Samad",
+    "en": "The Eternal Refuge",
+    "hi": "बेनियाज़"
+  },
+  {
+    "n": 69,
+    "ar": "الْقَادِرُ",
+    "tr": "Al-Qadir",
+    "en": "The Able",
+    "hi": "क़ुदरत वाला"
+  },
+  {
+    "n": 70,
+    "ar": "الْمُقْتَدِرُ",
+    "tr": "Al-Muqtadir",
+    "en": "The Powerful",
+    "hi": "पूर्ण क़ुदरत वाला"
+  },
+  {
+    "n": 71,
+    "ar": "الْمُقَدِّمُ",
+    "tr": "Al-Muqaddim",
+    "en": "The Expediter",
+    "hi": "आगे करने वाला"
+  },
+  {
+    "n": 72,
+    "ar": "الْمُؤَخِّرُ",
+    "tr": "Al-Mu'akhkhir",
+    "en": "The Delayer",
+    "hi": "पीछे करने वाला"
+  },
+  {
+    "n": 73,
+    "ar": "الْأَوَّلُ",
+    "tr": "Al-Awwal",
+    "en": "The First",
+    "hi": "पहला"
+  },
+  {
+    "n": 74,
+    "ar": "الْآخِرُ",
+    "tr": "Al-Akhir",
+    "en": "The Last",
+    "hi": "आख़िरी"
+  },
+  {
+    "n": 75,
+    "ar": "الظَّاهِرُ",
+    "tr": "Az-Zahir",
+    "en": "The Manifest",
+    "hi": "ज़ाहिर"
+  },
+  {
+    "n": 76,
+    "ar": "الْبَاطِنُ",
+    "tr": "Al-Batin",
+    "en": "The Hidden",
+    "hi": "बातिन"
+  },
+  {
+    "n": 77,
+    "ar": "الْوَالِي",
+    "tr": "Al-Wali",
+    "en": "The Governor",
+    "hi": "अम्र चलाने वाला"
+  },
+  {
+    "n": 78,
+    "ar": "الْمُتَعَالِي",
+    "tr": "Al-Muta'ali",
+    "en": "The Most Exalted",
+    "hi": "बहुत बुलंद"
+  },
+  {
+    "n": 79,
+    "ar": "الْبَرُّ",
+    "tr": "Al-Barr",
+    "en": "The Source of Goodness",
+    "hi": "नेकी वाला"
+  },
+  {
+    "n": 80,
+    "ar": "التَّوَّابُ",
+    "tr": "At-Tawwab",
+    "en": "The Accepter of Repentance",
+    "hi": "तौबा क़ुबूल करने वाला"
+  },
+  {
+    "n": 81,
+    "ar": "الْمُنْتَقِمُ",
+    "tr": "Al-Muntaqim",
+    "en": "The Avenger",
+    "hi": "बदला लेने वाला"
+  },
+  {
+    "n": 82,
+    "ar": "الْعَفُوُّ",
+    "tr": "Al-Afuww",
+    "en": "The Pardoner",
+    "hi": "माफ़ कर देने वाला"
+  },
+  {
+    "n": 83,
+    "ar": "الرَّءُوفُ",
+    "tr": "Ar-Ra'uf",
+    "en": "The Kind",
+    "hi": "बहुत शफ़ीक़"
+  },
+  {
+    "n": 84,
+    "ar": "مَالِكُ الْمُلْكِ",
+    "tr": "Malik-ul-Mulk",
+    "en": "Owner of Sovereignty",
+    "hi": "बादशाही का मालिक"
+  },
+  {
+    "n": 85,
+    "ar": "ذُو الْجَلَالِ وَالْإِكْرَامِ",
+    "tr": "Dhul-Jalali wal-Ikram",
+    "en": "Lord of Majesty and Honour",
+    "hi": "जलाल और इकराम वाला"
+  },
+  {
+    "n": 86,
+    "ar": "الْمُقْسِطُ",
+    "tr": "Al-Muqsit",
+    "en": "The Equitable",
+    "hi": "इनसाफ़ बरतने वाला"
+  },
+  {
+    "n": 87,
+    "ar": "الْجَامِعُ",
+    "tr": "Al-Jami",
+    "en": "The Gatherer",
+    "hi": "इकट्ठा करने वाला"
+  },
+  {
+    "n": 88,
+    "ar": "الْغَنِيُّ",
+    "tr": "Al-Ghani",
+    "en": "The Self-Sufficient",
+    "hi": "बेनियाज़"
+  },
+  {
+    "n": 89,
+    "ar": "الْمُغْنِي",
+    "tr": "Al-Mughni",
+    "en": "The Enricher",
+    "hi": "ग़नी बनाने वाला"
+  },
+  {
+    "n": 90,
+    "ar": "الْمَانِعُ",
+    "tr": "Al-Mani",
+    "en": "The Preventer",
+    "hi": "रोकने वाला"
+  },
+  {
+    "n": 91,
+    "ar": "الضَّارُّ",
+    "tr": "Ad-Darr",
+    "en": "The Distresser",
+    "hi": "नुक़सान पहुँचाने पर क़ादिर"
+  },
+  {
+    "n": 92,
+    "ar": "النَّافِعُ",
+    "tr": "An-Nafi",
+    "en": "The Benefiter",
+    "hi": "फ़ाएदा पहुँचाने वाला"
+  },
+  {
+    "n": 93,
+    "ar": "النُّورُ",
+    "tr": "An-Nur",
+    "en": "The Light",
+    "hi": "नूर"
+  },
+  {
+    "n": 94,
+    "ar": "الْهَادِي",
+    "tr": "Al-Hadi",
+    "en": "The Guide",
+    "hi": "हिदायत देने वाला"
+  },
+  {
+    "n": 95,
+    "ar": "الْبَدِيعُ",
+    "tr": "Al-Badi",
+    "en": "The Incomparable Originator",
+    "hi": "अनोखा पैदा करने वाला"
+  },
+  {
+    "n": 96,
+    "ar": "الْبَاقِي",
+    "tr": "Al-Baqi",
+    "en": "The Everlasting",
+    "hi": "बाक़ी रहने वाला"
+  },
+  {
+    "n": 97,
+    "ar": "الْوَارِثُ",
+    "tr": "Al-Warith",
+    "en": "The Inheritor",
+    "hi": "वारिस"
+  },
+  {
+    "n": 98,
+    "ar": "الرَّشِيدُ",
+    "tr": "Ar-Rashid",
+    "en": "The Guide to the Right Path",
+    "hi": "सीधी राह दिखाने वाला"
+  },
+  {
+    "n": 99,
+    "ar": "الصَّبُورُ",
+    "tr": "As-Sabur",
+    "en": "The Patient",
+    "hi": "सब्र वाला"
+  }
+]

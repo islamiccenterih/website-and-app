@@ -470,31 +470,38 @@ function link_list(string $settingKey, array $fallback): array
         if ($label === '' || $url === '') {
             continue;
         }
-        $out[] = [
-            'label' => $label,
-            'url' => $url,
-            'hidden' => !empty($link['hidden']),
-        ];
+        $out[] = nav_link_row($link);
     }
     if ($out) {
         return $out;
     }
     $fallbackOut = [];
     foreach ($fallback as $link) {
-        $fallbackOut[] = [
-            'label' => (string) ($link['label'] ?? ''),
-            'url' => (string) ($link['url'] ?? ''),
-            'hidden' => !empty($link['hidden']),
-        ];
+        $fallbackOut[] = nav_link_row($link);
     }
     return $fallbackOut;
 }
 
 /**
+ * @param array{label?:string,url?:string,hidden?:bool,group?:string} $link
+ * @return array{label:string,url:string,hidden:bool,group:string}
+ */
+function nav_link_row(array $link): array
+{
+    $url = trim((string) ($link['url'] ?? ''));
+    return [
+        'label' => (string) ($link['label'] ?? ''),
+        'url' => $url,
+        'hidden' => !empty($link['hidden']),
+        'group' => nav_item_group($link),
+    ];
+}
+
+/**
  * Public menus: drop hidden rows and translate labels.
  *
- * @param list<array{label:string,url:string,hidden?:bool}> $items
- * @return list<array{label:string,url:string}>
+ * @param list<array{label:string,url:string,hidden?:bool,group?:string}> $items
+ * @return list<array{label:string,url:string,group:string}>
  */
 function visible_nav_items(array $items): array
 {
@@ -506,6 +513,7 @@ function visible_nav_items(array $items): array
         $out[] = [
             'label' => cms((string) ($item['label'] ?? '')),
             'url' => (string) ($item['url'] ?? ''),
+            'group' => nav_item_group($item),
         ];
     }
 
@@ -523,6 +531,14 @@ function header_required_catalog(): array
         ['label' => 'Islamic Holidays', 'url' => '/islamic-holidays'],
         ['label' => 'Center Updates', 'url' => '/center-updates'],
         ['label' => 'Live', 'url' => '/live'],
+        ['label' => 'Daily Quran', 'url' => '/daily-quran'],
+        ['label' => 'Daily Duas', 'url' => '/daily-duas'],
+        ['label' => '99 Allah Names', 'url' => '/99-allah-names'],
+        ['label' => 'Quran Reader', 'url' => '/quran-reader'],
+        ['label' => 'Family Shares', 'url' => '/family-shares'],
+        ['label' => 'Janazah Steps', 'url' => '/janazah-steps'],
+        ['label' => 'Hajj & Umrah', 'url' => '/hajj-umrah'],
+        ['label' => 'Daily Tasbeeh', 'url' => '/daily-tasbeeh'],
     ];
 }
 
@@ -555,6 +571,14 @@ function footer_legacy_explore_urls(): array
         '/islamic-holidays',
         '/center-updates',
         '/live',
+        '/daily-quran',
+        '/daily-duas',
+        '/99-allah-names',
+        '/quran-reader',
+        '/family-shares',
+        '/janazah-steps',
+        '/hajj-umrah',
+        '/daily-tasbeeh',
     ];
 }
 
@@ -582,24 +606,33 @@ function footer_links(): array
     return visible_nav_items(footer_links_all());
 }
 
-/** @return list<array{label:string,url:string,hidden:bool}> */
+/** @return list<array{label:string,url:string,hidden:bool,group:string}> */
 function header_nav_all(): array
 {
     return ensure_nav_links(link_list('header_nav', [
-        ['label' => 'Home', 'url' => '/'],
-        ['label' => 'About Us', 'url' => '/about-us'],
-        ['label' => 'Courses', 'url' => '/courses'],
-        ['label' => 'Social Activities', 'url' => '/social-activities'],
-        ['label' => 'Gallery', 'url' => '/gallery'],
-        ['label' => 'Contact Us', 'url' => '/contact-us'],
-        ['label' => 'Moon Timing', 'url' => '/moon-timing'],
-        ['label' => 'Islamic Calendar', 'url' => '/islamic-calendar'],
-        ['label' => 'Qibla Direction', 'url' => '/qibla-direction'],
-        ['label' => 'Zakat Calculator', 'url' => '/zakat-calculator'],
-        ['label' => 'Ramadan Mode', 'url' => '/ramadan-mode'],
-        ['label' => 'Fatawa', 'url' => '/fatawa'],
-        ['label' => 'Islamic Holidays', 'url' => '/islamic-holidays'],
-        ['label' => 'Center Updates', 'url' => '/center-updates'],
+        ['label' => 'Home', 'url' => '/', 'group' => 'primary'],
+        ['label' => 'About Us', 'url' => '/about-us', 'group' => 'primary'],
+        ['label' => 'Courses', 'url' => '/courses', 'group' => 'primary'],
+        ['label' => 'Social Activities', 'url' => '/social-activities', 'group' => 'primary'],
+        ['label' => 'Gallery', 'url' => '/gallery', 'group' => 'primary'],
+        ['label' => 'Contact Us', 'url' => '/contact-us', 'group' => 'primary'],
+        ['label' => 'Live', 'url' => '/live', 'group' => 'primary'],
+        ['label' => 'Center Updates', 'url' => '/center-updates', 'group' => 'more'],
+        ['label' => 'Fatawa', 'url' => '/fatawa', 'group' => 'more'],
+        ['label' => 'Moon Timing', 'url' => '/moon-timing', 'group' => 'more'],
+        ['label' => 'Zakat Calculator', 'url' => '/zakat-calculator', 'group' => 'more'],
+        ['label' => 'Family Shares', 'url' => '/family-shares', 'group' => 'more'],
+        ['label' => 'Islamic Calendar', 'url' => '/islamic-calendar', 'group' => 'more'],
+        ['label' => 'Ramadan Mode', 'url' => '/ramadan-mode', 'group' => 'more'],
+        ['label' => 'Islamic Holidays', 'url' => '/islamic-holidays', 'group' => 'more'],
+        ['label' => 'Hajj & Umrah', 'url' => '/hajj-umrah', 'group' => 'more'],
+        ['label' => 'Janazah Steps', 'url' => '/janazah-steps', 'group' => 'more'],
+        ['label' => 'Qibla Direction', 'url' => '/qibla-direction', 'group' => 'daily'],
+        ['label' => 'Daily Quran', 'url' => '/daily-quran', 'group' => 'daily'],
+        ['label' => 'Daily Duas', 'url' => '/daily-duas', 'group' => 'daily'],
+        ['label' => '99 Allah Names', 'url' => '/99-allah-names', 'group' => 'daily'],
+        ['label' => 'Quran Reader', 'url' => '/quran-reader', 'group' => 'daily'],
+        ['label' => 'Daily Tasbeeh', 'url' => '/daily-tasbeeh', 'group' => 'daily'],
     ]), header_required_catalog());
 }
 
@@ -612,16 +645,84 @@ function header_nav(): array
 function header_more_paths(): array
 {
     return [
-        '/moon-timing',
-        '/islamic-calendar',
-        '/qibla-direction',
-        '/zakat-calculator',
-        '/ramadan-mode',
-        '/fatawa',
-        '/islamic-holidays',
         '/center-updates',
-        '/live',
+        '/fatawa',
+        '/moon-timing',
+        '/zakat-calculator',
+        '/family-shares',
+        '/islamic-calendar',
+        '/ramadan-mode',
+        '/islamic-holidays',
+        '/hajj-umrah',
+        '/janazah-steps',
     ];
+}
+
+/** @return list<string> */
+function header_daily_paths(): array
+{
+    return [
+        '/qibla-direction',
+        '/daily-quran',
+        '/daily-duas',
+        '/99-allah-names',
+        '/quran-reader',
+        '/daily-tasbeeh',
+    ];
+}
+
+function default_nav_group(string $url): string
+{
+    $path = nav_item_path($url);
+    if (in_array($path, header_daily_paths(), true)) {
+        return 'daily';
+    }
+    if (in_array($path, header_more_paths(), true)) {
+        return 'more';
+    }
+    return 'primary';
+}
+
+function normalize_nav_group(string $group, string $url = ''): string
+{
+    $group = strtolower(trim($group));
+    if (in_array($group, ['primary', 'more', 'daily'], true)) {
+        return $group;
+    }
+    return $url !== '' ? default_nav_group($url) : 'primary';
+}
+
+/**
+ * @param array{url?:string,group?:string} $item
+ */
+function nav_item_group(array $item): string
+{
+    return normalize_nav_group((string) ($item['group'] ?? ''), (string) ($item['url'] ?? ''));
+}
+
+function header_group_label(string $group): string
+{
+    return match ($group) {
+        'more' => 'More',
+        'daily' => 'Daily use',
+        'off' => 'Not in header',
+        default => 'Top menu',
+    };
+}
+
+/**
+ * @param list<array{label:string,url:string,group?:string}> $items
+ * @return list<array{label:string,url:string,group?:string}>
+ */
+function order_nav_group(array $items, string $group): array
+{
+    $order = array_flip($group === 'daily' ? header_daily_paths() : header_more_paths());
+    usort($items, static function (array $a, array $b) use ($order): int {
+        $ia = $order[nav_item_path((string) ($a['url'] ?? ''))] ?? 1000;
+        $ib = $order[nav_item_path((string) ($b['url'] ?? ''))] ?? 1000;
+        return $ia <=> $ib;
+    });
+    return $items;
 }
 
 function nav_item_path(string $url): string
@@ -636,21 +737,46 @@ function nav_item_path(string $url): string
 }
 
 /**
- * @return array{primary:list<array{label:string,url:string}>,more:list<array{label:string,url:string}>}
+ * @return array{primary:list<array{label:string,url:string,group:string}>,more:list<array{label:string,url:string,group:string}>,daily:list<array{label:string,url:string,group:string}>}
  */
 function header_nav_split(): array
 {
-    $morePaths = header_more_paths();
     $primary = [];
     $more = [];
+    $daily = [];
+    $live = null;
     foreach (header_nav() as $item) {
-        if (in_array(nav_item_path((string) $item['url']), $morePaths, true)) {
+        $path = nav_item_path((string) $item['url']);
+        $group = nav_item_group($item);
+        if ($path === '/live' && $group === 'primary') {
+            $live = $item;
+            continue;
+        }
+        if ($group === 'more') {
             $more[] = $item;
+        } elseif ($group === 'daily') {
+            $daily[] = $item;
         } else {
             $primary[] = $item;
         }
     }
-    return ['primary' => $primary, 'more' => $more];
+    if ($live !== null) {
+        $placed = [];
+        $done = false;
+        foreach ($primary as $item) {
+            $placed[] = $item;
+            if (nav_item_path((string) $item['url']) === '/contact-us') {
+                $placed[] = $live;
+                $done = true;
+            }
+        }
+        $primary = $done ? $placed : array_merge($placed, [$live]);
+    }
+    return [
+        'primary' => $primary,
+        'more' => order_nav_group($more, 'more'),
+        'daily' => order_nav_group($daily, 'daily'),
+    ];
 }
 
 function default_page_menu_labels(): array
@@ -671,6 +797,14 @@ function default_page_menu_labels(): array
         '/islamic-holidays' => 'Islamic Holidays',
         '/center-updates' => 'Center Updates',
         '/live' => 'Live',
+        '/daily-quran' => 'Daily Quran',
+        '/daily-duas' => 'Daily Duas',
+        '/99-allah-names' => '99 Allah Names',
+        '/quran-reader' => 'Quran Reader',
+        '/family-shares' => 'Family Shares',
+        '/janazah-steps' => 'Janazah Steps',
+        '/hajj-umrah' => 'Hajj & Umrah',
+        '/daily-tasbeeh' => 'Daily Tasbeeh',
         '/privacy-policy' => 'Privacy Policy',
         '/privacy' => 'Privacy Policy',
         '/terms-and-conditions' => 'Terms & Conditions',
@@ -692,9 +826,9 @@ function repair_nav_label(string $url, string $label): string
  * Keep hidden rows in the list so they stay Hide in admin and are not
  * re-inserted as visible catalog pages.
  *
- * @param list<array{label:string,url:string,hidden?:bool}> $links
- * @param list<array{label:string,url:string}> $required
- * @return list<array{label:string,url:string,hidden:bool}>
+ * @param list<array{label:string,url:string,hidden?:bool,group?:string}> $links
+ * @param list<array{label:string,url:string,group?:string}> $required
+ * @return list<array{label:string,url:string,hidden:bool,group:string}>
  */
 function ensure_nav_links(array $links, array $required): array
 {
@@ -703,6 +837,7 @@ function ensure_nav_links(array $links, array $required): array
         $url = (string) ($link['url'] ?? '');
         $links[$i]['hidden'] = !empty($link['hidden']);
         $links[$i]['label'] = repair_nav_label($url, (string) ($link['label'] ?? ''));
+        $links[$i]['group'] = nav_item_group($link);
         $path = nav_item_path($url);
         if ($path !== '') {
             $have[$path] = true;
@@ -713,11 +848,12 @@ function ensure_nav_links(array $links, array $required): array
         if ($path === '' || isset($have[$path])) {
             continue;
         }
-        $links[] = [
+        $links[] = nav_link_row([
             'label' => (string) ($item['label'] ?? ''),
             'url' => (string) ($item['url'] ?? ''),
             'hidden' => false,
-        ];
+            'group' => (string) ($item['group'] ?? ''),
+        ]);
         $have[$path] = true;
     }
     return $links;

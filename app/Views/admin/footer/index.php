@@ -35,14 +35,24 @@ if ($legalHeadingValue === '' || strcasecmp($legalHeadingValue, 'Explore') === 0
 
     <h2>Header menu</h2>
     <div class="field"><label>Student login button</label><input name="header_login_label" value="<?= e((string) setting('header_login_label', 'Student Login')) ?>"></div>
+    <p class="help">Each row can sit in the top bar, the More dropdown, or Daily use. Hide removes it from the public menu. Empty rows are ignored — use them to add a new page or an external link.</p>
     <?php foreach ($nav as $i => $link): ?>
-        <div class="row-3<?= !empty($link['hidden']) ? ' is-nav-hidden' : '' ?>" data-nav-row>
+        <?php $group = nav_item_group($link); ?>
+        <div class="row-nav<?= !empty($link['hidden']) ? ' is-nav-hidden' : '' ?>" data-nav-row>
             <div class="field"><label>Menu <?= $i + 1 ?> label</label><input name="nav_label[]" dir="auto" value="<?= e((string) ($link['label'] ?? '')) ?>" placeholder="About Us"></div>
             <div class="field"><label>Menu <?= $i + 1 ?> URL</label><input name="nav_url[]" value="<?= e((string) ($link['url'] ?? '')) ?>" placeholder="/about-us"></div>
+            <div class="field">
+                <label>Menu <?= $i + 1 ?> group</label>
+                <select name="nav_group[]">
+                    <option value="primary"<?= selected($group, 'primary') ?>><?= e(header_group_label('primary')) ?></option>
+                    <option value="more"<?= selected($group, 'more') ?>><?= e(header_group_label('more')) ?></option>
+                    <option value="daily"<?= selected($group, 'daily') ?>><?= e(header_group_label('daily')) ?></option>
+                </select>
+            </div>
             <?php $visibilityField('nav_hidden[]', $link, $i, 'Menu'); ?>
         </div>
     <?php endforeach; ?>
-    <p class="help">Rename website pages under <a href="<?= e(url('/admin/pages')) ?>">Pages</a>. Use this screen for extra links, Show/Hide, and the student login button.</p>
+    <p class="help">Rename website pages under <a href="<?= e(url('/admin/pages')) ?>">Pages</a>. That screen also has this group list on every page.</p>
 
     <h2>Footer — about column</h2>
     <div class="field"><label>Heading</label><input name="footer_brand_title" dir="auto" value="<?= e(ftc((string) setting('footer_brand_title', site_name()))) ?>"></div>

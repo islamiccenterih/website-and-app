@@ -135,6 +135,9 @@ final class AdminAccess
                 || self::canModule('fatawa', $user)
                 || self::canModule('pages', $user);
         }
+        if (str_starts_with($path, '/admin/faith-content')) {
+            return \App\Core\SitePages::canList($user);
+        }
         if (str_starts_with($path, '/admin/pages')) {
             return \App\Core\SitePages::canList($user);
         }

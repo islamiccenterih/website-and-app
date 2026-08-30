@@ -31,7 +31,7 @@ $htmlDir = $isAdmin ? 'ltr' : \App\I18n\Lang::dir();
     <title><?= e($pageTitle ?? 'Dashboard') ?></title>
     <link rel="icon" href="<?= e(asset('assets/img/favicon.png')) ?>">
     <link rel="preload" href="<?= e(asset('assets/fonts/merriweather-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=86">
+    <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=90">
     <meta name="robots" content="noindex,nofollow">
 </head>
 <body class="dash-body">

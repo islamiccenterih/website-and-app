@@ -22,27 +22,27 @@
     });
   }
 
-  const closeMore = () => {
-    document.querySelectorAll('[data-nav-more]').forEach((wrap) => {
+  const closeDrops = () => {
+    document.querySelectorAll('[data-nav-drop]').forEach((wrap) => {
       wrap.classList.remove('is-open');
-      const btn = wrap.querySelector('[data-nav-more-btn]');
+      const btn = wrap.querySelector('[data-nav-drop-btn]');
       if (btn) btn.setAttribute('aria-expanded', 'false');
     });
   };
-  document.querySelectorAll('[data-nav-more]').forEach((wrap) => {
-    const btn = wrap.querySelector('[data-nav-more-btn]');
+  document.querySelectorAll('[data-nav-drop]').forEach((wrap) => {
+    const btn = wrap.querySelector('[data-nav-drop-btn]');
     if (!btn) return;
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const open = !wrap.classList.contains('is-open');
-      closeMore();
+      closeDrops();
       wrap.classList.toggle('is-open', open);
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
   });
-  document.addEventListener('click', closeMore);
+  document.addEventListener('click', closeDrops);
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeMore();
+    if (e.key === 'Escape') closeDrops();
   });
 
   const side = document.getElementById('dash-side');

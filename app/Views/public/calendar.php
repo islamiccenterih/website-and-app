@@ -31,6 +31,45 @@ $centerMonths = is_array($months ?? null) ? $months : [];
             <strong data-hijri-today-label><?= e((string) ($cal['today_label'] ?? '')) ?></strong>
         </p>
 
+        <article class="ft-panel ft-convert" data-date-convert>
+            <p class="ft-kicker"><?= e(page_copy('calendar', 'converter_kicker', 'Convert a date')) ?></p>
+            <h2><?= e(page_copy('calendar', 'converter_title', 'Hijri ↔ English')) ?></h2>
+            <p><?= e(page_copy('calendar', 'converter_lead', 'See today’s Islamic date, or convert any English date to Hijri and any Hijri date to English.')) ?></p>
+            <div class="ft-convert-grid">
+                <form data-gtoh>
+                    <h3>English → Hijri</h3>
+                    <label>Day <input name="gd" type="number" min="1" max="31" required></label>
+                    <label>Month <input name="gm" type="number" min="1" max="12" required></label>
+                    <label>Year <input name="gy" type="number" min="1900" max="2100" required></label>
+                    <button class="btn btn-walnut" type="submit">To Hijri</button>
+                    <p class="ft-convert-out" data-gtoh-out></p>
+                </form>
+                <form data-htog>
+                    <h3>Hijri → English</h3>
+                    <label>Day <input name="hd" type="number" min="1" max="30" required></label>
+                    <label>Month
+                        <select name="hm">
+                            <option value="1">Muharram</option>
+                            <option value="2">Safar</option>
+                            <option value="3">Rabi‘ al-Awwal</option>
+                            <option value="4">Rabi‘ al-Thani</option>
+                            <option value="5">Jumada al-Ula</option>
+                            <option value="6">Jumada al-Akhirah</option>
+                            <option value="7">Rajab</option>
+                            <option value="8">Sha‘ban</option>
+                            <option value="9">Ramadan</option>
+                            <option value="10">Shawwal</option>
+                            <option value="11">Dhul Qa‘dah</option>
+                            <option value="12">Dhul Hijjah</option>
+                        </select>
+                    </label>
+                    <label>Year AH <input name="hy" type="number" min="1" max="2000" required></label>
+                    <button class="btn btn-walnut" type="submit">To English</button>
+                    <p class="ft-convert-out" data-htog-out></p>
+                </form>
+            </div>
+        </article>
+
         <?php if (!empty($cal['error']) && empty($cal['ok'])): ?>
             <div class="empty-state">
                 <h3>Calendar could not be opened</h3>
@@ -205,4 +244,4 @@ $centerMonths = is_array($months ?? null) ? $months : [];
         <?php endif; ?>
     </div>
 </section>
-<script src="<?= e(asset('assets/js/calendar-live.js')) ?>?v=2" defer></script>
+<script src="<?= e(asset('assets/js/calendar-live.js')) ?>?v=3" defer></script>
